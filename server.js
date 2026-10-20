@@ -1,3 +1,4 @@
+
 const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
@@ -16,32 +17,45 @@ const requiredEnv = [
 ];
 
 for (const key of requiredEnv) {
-  if (!process.env[key]) {
+  if (!process.env[key] || !process.env[key].trim()) {
     throw new Error(`Missing environment variable: ${key}`);
   }
+}
+
+if (process.env.SESSION_SECRET.length < 32) {
+  throw new Error("SESSION_SECRET must be at least 32 characters.");
 }
 
 if (process.env.ADMIN_PASSWORD.length < 12) {
   throw new Error("ADMIN_PASSWORD must be at least 12 characters.");
 }
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL.trim().toLowerCase();
+
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ADMIN_EMAIL)) {
+  throw new Error("ADMIN_EMAIL must be a valid email address.");
+}
+
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
+
+app.disable("x-powered-by");
+app.use(express.json({ limit: "20kb" }));
+app.use(express.urlencoded({ extended: false, limit: "20kb" }));
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl:
     process.env.DATABASE_SSL === "disable"
       ? false
-      : { rejectUnauthorized: false }
+      : { rejectUnauthorized: false },
+  connectionTimeoutMillis: 10000
 });
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL.trim().toLowerCase();
-
-app.disable("x-powered-by");
-app.use(express.json({ limit: "20kb" }));
-app.use(express.urlencoded({ extended: false }));
+pool.on("error", (error) => {
+  console.error("Unexpected PostgreSQL pool error:", error.message);
+});
 
 app.use(
   session({
@@ -58,7 +72,8 @@ app.use(
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/"
     }
   })
 );
@@ -100,8 +115,8 @@ function requireAdmin(req, res, next) {
 
 function regenerateSession(req) {
   return new Promise((resolve, reject) => {
-    req.session.regenerate((err) => {
-      if (err) reject(err);
+    req.session.regenerate((error) => {
+      if (error) reject(error);
       else resolve();
     });
   });
@@ -109,8 +124,8 @@ function regenerateSession(req) {
 
 function saveSession(req) {
   return new Promise((resolve, reject) => {
-    req.session.save((err) => {
-      if (err) reject(err);
+    req.session.save((error) => {
+      if (error) reject(error);
       else resolve();
     });
   });
@@ -118,14 +133,13 @@ function saveSession(req) {
 
 function destroySession(req) {
   return new Promise((resolve, reject) => {
-    req.session.destroy((err) => {
-      if (err) reject(err);
+    req.session.destroy((error) => {
+      if (error) reject(error);
       else resolve();
     });
   });
 }
 
-// Create database tables and configure the admin account.
 async function initializeDatabase() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS app_users (
@@ -148,7 +162,7 @@ async function initializeDatabase() {
     12
   );
 
-  // The configured admin email is the only admin account.
+  // Only the configured administrator email should have admin role.
   await pool.query(
     `UPDATE app_users
      SET role = 'user'
@@ -177,7 +191,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Check current login.
+// Check the current session.
 app.get("/api/me", (req, res) => {
   res.set("Cache-Control", "no-store");
 
@@ -190,7 +204,7 @@ app.get("/api/me", (req, res) => {
   return res.json({ user: req.session.user });
 });
 
-// Create a regular customer account.
+// Register a regular customer account.
 app.post("/api/register", async (req, res, next) => {
   try {
     const { fullName, email, password } = req.body || {};
@@ -221,7 +235,6 @@ app.post("/api/register", async (req, res, next) => {
       });
     }
 
-    // Prevent public signup using the configured admin email.
     if (cleanEmail === ADMIN_EMAIL) {
       return res.status(403).json({
         error: "This email is reserved for the administrator."
@@ -260,7 +273,7 @@ app.post("/api/register", async (req, res, next) => {
   }
 });
 
-// Log in as a customer or administrator.
+// Log in a customer or the configured administrator.
 app.post("/api/login", async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
@@ -297,7 +310,6 @@ app.post("/api/login", async (req, res, next) => {
       });
     }
 
-    // Only the email configured in Render can log in as admin.
     const role =
       userRecord.email.toLowerCase() === ADMIN_EMAIL
         ? "admin"
@@ -321,7 +333,7 @@ app.post("/api/login", async (req, res, next) => {
   }
 });
 
-// Log out and invalidate the server-side session.
+// Log out and invalidate the session.
 app.post("/api/logout", async (req, res, next) => {
   try {
     await destroySession(req);
@@ -376,7 +388,7 @@ app.get("/api/admin/check", requireAdmin, (req, res) => {
   });
 });
 
-// Only administrators can list customer accounts.
+// List customer accounts: administrator only.
 app.get("/api/admin/users", requireAdmin, async (req, res, next) => {
   try {
     const result = await pool.query(
@@ -394,7 +406,7 @@ app.get("/api/admin/users", requireAdmin, async (req, res, next) => {
   }
 });
 
-// Do not expose internal database errors to website visitors.
+// Handle errors without exposing internal details to visitors.
 app.use((error, req, res, next) => {
   console.error("Request failed:", error.message);
 
@@ -412,7 +424,7 @@ async function start() {
   await initializeDatabase();
   await pool.query("SELECT 1");
 
-  app.listen(PORT, () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`AbyssiniaSend listening on port ${PORT}`);
   });
 }
