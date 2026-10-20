@@ -1,0 +1,775 @@
+</html>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AbyssiniaSend | Secure Money Transfers</title>
+
+  <style>
+    :root {
+      --navy: #071426;
+      --navy-light: #10243d;
+      --navy-card: #132a47;
+      --gold: #e8b85b;
+      --white: #ffffff;
+      --muted: #b9c5d5;
+      --green: #30c48d;
+      --red: #ff5c5c;
+      --blue: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button, select, input {
+      font: inherit;
+    }
+
+    header {
+      background: rgba(7, 20, 38, 0.96);
+      border-bottom: 1px solid #24354a;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar {
+      max-width: 1150px;
+      margin: auto;
+      padding: 12px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .logo img {
+      height: 42px;
+      vertical-align: middle;
+      object-fit: contain;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-links a {
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--gold);
+      background: rgba(232, 184, 91, 0.1);
+    }
+
+    /* Mobile Menu Toggle Button */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: 1px solid #40516a;
+      color: var(--gold);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    select, input {
+      background: #10243d;
+      color: white;
+      border: 1px solid #40516a;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 100%;
+    }
+
+    .btn {
+      display: inline-block;
+      background: var(--gold);
+      color: #101827;
+      font-weight: bold;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.88;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+    }
+
+    .btn-green { background: var(--green); color: #071426; }
+    .btn-red { background: var(--red); color: white; }
+    .btn-blue { background: var(--blue); color: white; }
+
+    /* Page View Controller */
+    .page-view {
+      display: none;
+    }
+
+    .page-view.active-page {
+      display: block;
+    }
+
+    .hero {
+      max-width: 1150px;
+      margin: auto;
+      padding: 65px 22px;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 45px;
+      align-items: center;
+    }
+
+    .tag {
+      color: var(--green);
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 4vw, 50px);
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+
+    h1 span {
+      color: var(--gold);
+    }
+
+    .hero p {
+      color: var(--muted);
+      margin-bottom: 25px;
+      max-width: 580px;
+    }
+
+    .hero-card, .card, .exchange-box, .dashboard-box, .menu-card {
+      background: var(--navy-light);
+      border: 1px solid #2b4058;
+      border-radius: 18px;
+      padding: 25px;
+    }
+
+    .hero-card h2 {
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    .rate {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 12px 0;
+    }
+
+    .note {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    section {
+      padding: 50px 22px;
+    }
+
+    .section-inner {
+      max-width: 1150px;
+      margin: auto;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 30px;
+    }
+
+    /* Navigation / Menu Page Grid */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .menu-card {
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--gold);
+    }
+
+    .menu-card h3 {
+      color: var(--gold);
+      margin-bottom: 8px;
+      font-size: 20px;
+    }
+
+    .menu-card p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Dashboard & Transfers Section */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+    }
+
+    .transfer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .transfer-item {
+      background: var(--navy-card);
+      border: 1px solid #2b4058;
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .transfer-info h4 {
+      color: var(--gold);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .transfer-info p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+
+    .badge-pending { background: #3d3510; color: var(--gold); }
+    .badge-sent { background: #103d2b; color: var(--green); }
+
+    .transfer-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .exchange-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      align-items: start;
+    }
+
+    .exchange-box h3 {
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 15px;
+    }
+
+    .exchange-result {
+      margin-top: 18px;
+      padding: 16px;
+      background: #071426;
+      border-radius: 10px;
+    }
+
+    .result-number {
+      font-size: 25px;
+      color: var(--green);
+      font-weight: bold;
+    }
+
+    footer {
+      text-align: center;
+      padding: 28px 20px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid #24354a;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 850px) {
+      .hero, .exchange-layout, .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background: var(--navy-light);
+        position: absolute;
+        top: 100%;
+        left: 0;
+        padding: 20px;
+        border-bottom: 1px solid #2b4058;
+      }
+      .nav-links.show {
+        display: flex;
+      }
+      .menu-toggle {
+        display: block;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <nav class="navbar">
+      <a class="logo" href="#" onclick="switchPage('home')">
+        <img src="logo.jpg" alt="AbyssiniaSend Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span style="display:none; color: var(--gold); font-size: 22px; font-weight: bold;">AbyssiniaSend</span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggleBtn" aria-label="Toggle Navigation">☰</button>
+
+      <div class="nav-links" id="navLinksContainer">
+        <a id="nav-home" onclick="switchPage('home')">Home</a>
+        <a id="nav-menu" onclick="switchPage('menu')" class="active">App Menu</a>
+        <a id="nav-dashboard" onclick="switchPage('dashboard')">Dashboard</a>
+        <a id="nav-exchange" onclick="switchPage('exchange')">Live Exchange</a>
+        <a id="nav-ussd" onclick="switchPage('ussd')">USSD Guide</a>
+
+        <select id="language" aria-label="Choose language">
+          <option value="en">English</option>
+          <option value="am">አማርኛ</option>
+        </select>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- PAGE 1: HOME VIEW -->
+    <div id="page-home" class="page-view">
+      <section class="hero">
+        <div>
+          <div class="tag">SECURE • FAST • RELIABLE</div>
+          <h1>Global Money Transfers to <span>Ethiopia & Beyond.</span></h1>
+          <p>Manage real transaction requests, access live currency conversions with live exchange rate integration, and securely handle disbursements.</p>
+          <button class="btn" onclick="switchPage('menu')">Explore App Menu →</button>
+        </div>
+
+        <div class="hero-card">
+          <h2>Live Market Rate</h2>
+          <p>Real-time FX Feed</p>
+          <div class="rate" id="heroRateDisplay">Loading...</div>
+          <p class="note">Connected to live exchange API feed.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- PAGE 2: MENU PAGE VIEW -->
+    <div id="page-menu" class="page-view active-page">
+      <section>
+        <div class="section-inner">
+          <h2 class="section-title">AbyssiniaSend Application Menu</h2>
+          <p class="section-subtitle">Select a module below to navigate directly through the platform.</p>
+
+          <div class="menu-grid">
+            <div class="menu-card" onclick="switchPage('home')">
+              <h3>🏠 Home Portal</h3>
+              <p>Return to the main welcome dashboard and quick summary overview.</p>
+            </div>
+
+            <div class="menu-card" onclick="switchPage('dashboard')">
+              <h3>📊 Transfer Dashboard</h3>
+              <p>Manage transaction queues, submit new orders, edit records, and process payouts.</p>
+            </div>
+
+            <div class="menu-card" onclick="switchPage('exchange')">
+              <h3>💱 Live Currency Converter</h3>
+              <p>Calculate live payouts using real-time open market exchange rate feeds.</p>
+            </div>
+
+            <div class="menu-card" onclick="switchPage('ussd')">
+              <h3>📱 USSD Quick Access</h3>
+              <p>View telecom shortcodes and offline USSD codes for quick account access.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PAGE 3: DASHBOARD VIEW -->
+    <div id="page-dashboard" class="page-view">
+      <section>
+        <div class="section-inner">
+          <h2 class="section-title">Transfer Ledger & Management</h2>
+          <p class="section-subtitle">Create, edit, process, and clear real transaction records with persistent local storage.</p>
+
+          <div class="dashboard-grid">
+            <div class="dashboard-box">
+              <h3 id="formTitle" style="color: var(--gold); margin-bottom: 15px;">New Transfer Order</h3>
+              <input type="hidden" id="editIndex" value="-1">
+
+              <div class="form-group">
+                <label for="recipientName">Beneficiary Full Name</label>
+                <input type="text" id="recipientName" placeholder="e.g., Abebe Kebede">
+              </div>
+
+              <div class="form-group">
+                <label for="transferAmount">Send Amount (USD)</label>
+                <input type="number" id="transferAmount" min="1" value="100">
+              </div>
+
+              <div class="form-group">
+                <label for="destinationBank">Payout Institution</label>
+                <select id="destinationBank">
+                  <option value="Commercial Bank of Ethiopia">Commercial Bank of Ethiopia (CBE)</option>
+                  <option value="Telebirr">Telebirr Wallet</option>
+                  <option value="Bank of Abyssinia">Bank of Abyssinia</option>
+                  <option value="Awash Bank">Awash Bank</option>
+                  <option value="Dashen Bank">Dashen Bank</option>
+                </select>
+              </div>
+
+              <button class="btn btn-green" id="saveTransferBtn" style="width: 100%;">Submit Transfer Order</button>
+            </div>
+
+            <div class="dashboard-box">
+              <h3 style="color: var(--gold); margin-bottom: 15px;">Transaction Queue</h3>
+              <div class="transfer-list" id="transferListContainer"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PAGE 4: LIVE EXCHANGE VIEW -->
+    <div id="page-exchange" class="page-view">
+      <section>
+        <div class="section-inner">
+          <h2 class="section-title">Live Currency Converter</h2>
+          <p class="section-subtitle">Powered by real-time exchange rates (USD, ETB, EUR, GBP).</p>
+
+          <div class="exchange-layout">
+            <div class="exchange-box">
+              <h3>Calculate Payout</h3>
+
+              <div class="field">
+                <label for="amount">Amount</label>
+                <input id="amount" type="number" min="0" step="any" value="100">
+              </div>
+
+              <div class="field">
+                <label for="fromCurrency">From</label>
+                <select id="fromCurrency">
+                  <option value="USD" selected>USD — US Dollar</option>
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="GBP">GBP — British Pound</option>
+                  <option value="ETB">ETB — Ethiopian Birr</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="toCurrency">To</label>
+                <select id="toCurrency">
+                  <option value="ETB" selected>ETB — Ethiopian Birr</option>
+                  <option value="USD">USD — US Dollar</option>
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="GBP">GBP — British Pound</option>
+                </select>
+              </div>
+
+              <button class="btn" id="convertBtn">Fetch Live Conversion</button>
+
+              <div class="exchange-result" aria-live="polite">
+                <div>Converted Amount</div>
+                <div class="result-number" id="result">Connecting...</div>
+                <p class="note" id="rateNote">Fetching latest market rates...</p>
+              </div>
+            </div>
+
+            <div class="exchange-box">
+              <h3>API Integration Status</h3>
+              <p>🌐 <strong>Status:</strong> <span id="apiStatus" style="color: var(--green);">Connected</span></p>
+              <p>🔄 <strong>Updates:</strong> Real-time feed via open exchange rates API.</p>
+              <br>
+              <p class="note">Transactions processed here utilize persistent browser local storage (`localStorage`) so your ledger items remain saved across page reloads.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PAGE 5: USSD GUIDE VIEW -->
+    <div id="page-ussd" class="page-view">
+      <section style="background: #10243d; padding: 60px 20px; text-align: center;">
+        <div class="section-inner">
+          <h2 class="section-title">USSD Shortcodes for Quick Access</h2>
+          <p style="color: var(--muted); max-width: 700px; margin: 12px auto 25px;">Use your mobile phone to check balances or cash-out directly via supported telecom networks.</p>
+          <div class="dashboard-box" style="max-width: 500px; margin: auto; text-align: left;">
+            <p style="margin-bottom: 10px;">📱 <strong>Telebirr:</strong> *127#</p>
+            <p style="margin-bottom: 10px;">📱 <strong>CBE Birr:</strong> *847#</p>
+            <p>📱 <strong>Bank of Abyssinia:</strong> *815#</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026 AbyssiniaSend — Production Application Build</p>
+  </footer>
+
+  <script>
+    // --- Page Routing Switcher ---
+    function switchPage(pageId) {
+      document.querySelectorAll('.page-view').forEach(page => {
+        page.classList.remove('active-page');
+      });
+      document.querySelectorAll('.nav-links a').forEach(link => {
+        link.classList.remove('active');
+      });
+
+      const targetPage = document.getElementById('page-' + pageId);
+      const targetNav = document.getElementById('nav-' + pageId);
+
+      if (targetPage) targetPage.classList.add('active-page');
+      if (targetNav) targetNav.classList.add('active');
+
+      // Close mobile menu on click
+      document.getElementById('navLinksContainer').classList.remove('show');
+      window.scrollTo(0, 0);
+    }
+
+    // Mobile menu toggle
+    document.getElementById('menuToggleBtn').addEventListener('click', () => {
+      document.getElementById('navLinksContainer').classList.toggle('show');
+    });
+
+    // --- Live Exchange Rates API Integration ---
+    let exchangeRates = {};
+
+    async function fetchExchangeRates() {
+      try {
+        const response = await fetch("https://open.er-api.com/v6/latest/USD");
+        const data = await response.json();
+        if (data && data.rates) {
+          exchangeRates = data.rates;
+          document.getElementById("apiStatus").textContent = "Online & Synced";
+          document.getElementById("apiStatus").style.color = "var(--green)";
+          
+          const etbRate = exchangeRates["ETB"] ? exchangeRates["ETB"].toFixed(2) : "159.00";
+          document.getElementById("heroRateDisplay").textContent = `1 USD = ${etbRate} ETB`;
+          convertCurrency();
+        }
+      } catch (error) {
+        exchangeRates = { USD: 1, ETB: 159, EUR: 0.92, GBP: 0.79 };
+        document.getElementById("apiStatus").textContent = "Offline (Using Fallback Rates)";
+        document.getElementById("apiStatus").style.color = "var(--red)";
+        document.getElementById("heroRateDisplay").textContent = `1 USD = 159.00 ETB`;
+        convertCurrency();
+      }
+    }
+
+    const amountInput = document.getElementById("amount");
+    const fromSelect = document.getElementById("fromCurrency");
+    const toSelect = document.getElementById("toCurrency");
+    const resultDiv = document.getElementById("result");
+    const rateNote = document.getElementById("rateNote");
+
+    function convertCurrency() {
+      const amount = Number(amountInput.value);
+      const from = fromSelect.value;
+      const to = toSelect.value;
+
+      if (!Number.isFinite(amount) || amount < 0) {
+        resultDiv.textContent = "Enter valid amount";
+        rateNote.textContent = "";
+        return;
+      }
+
+      if (Object.keys(exchangeRates).length === 0) return;
+
+      const amountInUSD = amount / exchangeRates[from];
+      const convertedAmount = amountInUSD * exchangeRates[to];
+
+      resultDiv.textContent = convertedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " " + to;
+      rateNote.textContent = `1 ${from} = ${(exchangeRates[to] / exchangeRates[from]).toFixed(4)} ${to}`;
+    }
+
+    document.getElementById("convertBtn").addEventListener("click", convertCurrency);
+    amountInput.addEventListener("input", convertCurrency);
+    fromSelect.addEventListener("change", convertCurrency);
+    toSelect.addEventListener("change", convertCurrency);
+
+    // --- Persistent LocalStorage Transfer Ledger ---
+    let transfers = JSON.parse(localStorage.getItem("abyssinia_transfers")) || [
+      { name: "Dawit Mamo", amount: 250, bank: "Telebirr", status: "Processing" },
+      { name: "Tigist Bekele", amount: 500, bank: "Commercial Bank of Ethiopia", status: "Completed" }
+    ];
+
+    const recipientInput = document.getElementById("recipientName");
+    const transferAmountInput = document.getElementById("transferAmount");
+    const destinationBankSelect = document.getElementById("destinationBank");
+    const saveTransferBtn = document.getElementById("saveTransferBtn");
+    const editIndexInput = document.getElementById("editIndex");
+    const formTitle = document.getElementById("formTitle");
+    const transferListContainer = document.getElementById("transferListContainer");
+
+    function persistAndRender() {
+      localStorage.setItem("abyssinia_transfers", JSON.stringify(transfers));
+      renderTransfers();
+    }
+
+    function renderTransfers() {
+      transferListContainer.innerHTML = "";
+      
+      if (transfers.length === 0) {
+        transferListContainer.innerHTML = `<p class="note" style="text-align: center; padding: 20px;">No transfer records found in queue.</p>`;
+        return;
+      }
+
+      transfers.forEach((item, index) => {
+        const badgeClass = item.status === "Completed" ? "badge-sent" : "badge-pending";
+        const div = document.createElement("div");
+        div.className = "transfer-item";
+        div.innerHTML = `
+          <div class="transfer-info">
+            <h4>${item.name}</h4>
+            <p>$${item.amount} USD — ${item.bank}</p>
+            <span class="badge ${badgeClass}">${item.status}</span>
+          </div>
+          <div class="transfer-actions">
+            ${item.status !== "Completed" ? `<button class="btn btn-sm btn-green" onclick="completeTransfer(${index})">Process</button>` : ""}
+            <button class="btn btn-sm btn-blue" onclick="editTransfer(${index})">Edit</button>
+            <button class="btn btn-sm btn-red" onclick="deleteTransfer(${index})">Delete</button>
+          </div>
+        `;
+        transferListContainer.appendChild(div);
+      });
+    }
+
+    saveTransferBtn.addEventListener("click", () => {
+      const name = recipientInput.value.trim();
+      const amount = Number(transferAmountInput.value);
+      const bank = destinationBankSelect.value;
+      const editIdx = Number(editIndexInput.value);
+
+      if (!name || amount <= 0) {
+        alert("Please enter a valid recipient name and a positive send amount.");
+        return;
+      }
+
+      if (editIdx === -1) {
+        transfers.unshift({ name, amount, bank, status: "Processing" });
+      } else {
+        transfers[editIdx].name = name;
+        transfers[editIdx].amount = amount;
+        transfers[editIdx].bank = bank;
+        
+        editIndexInput.value = "-1";
+        formTitle.textContent = "New Transfer Order";
+        saveTransferBtn.textContent = "Submit Transfer Order";
+        saveTransferBtn.className = "btn btn-green";
+      }
+
+      recipientInput.value = "";
+      transferAmountInput.value = "100";
+      persistAndRender();
+    });
+
+    window.editTransfer = function(index) {
+      const item = transfers[index];
+      recipientInput.value = item.name;
+      transferAmountInput.value = item.amount;
+      destinationBankSelect.value = item.bank;
+      editIndexInput.value = index;
+      
+      formTitle.textContent = "Edit Transfer Record";
+      saveTransferBtn.textContent = "Update Order";
+      saveTransferBtn.className = "btn btn-blue";
+      recipientInput.focus();
+    };
+
+    window.deleteTransfer = function(index) {
+      if (confirm("Are you sure you want to remove this transaction record?")) {
+        transfers.splice(index, 1);
+        persistAndRender();
+      }
+    };
+
+    window.completeTransfer = function(index) {
+      transfers[index].status = "Completed";
+      persistAndRender();
+    };
+
+    fetchExchangeRates();
+    renderTransfers();
+  </script>
+</body>
+</html>
