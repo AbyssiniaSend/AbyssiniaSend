@@ -23,8 +23,6 @@ for (const key of requiredEnv) {
   }
 }
 
-}
-
 if (process.env.SESSION_SECRET.length < 32) {
   throw new Error("SESSION_SECRET must be at least 32 characters.");
 }
