@@ -9,17 +9,20 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 const requiredEnv = [
-  "DATABASE_URL abyssiniasend_db_user:TbLFzANJscH1P7sl7VpUQiYwA0pTaXcQ@dpg-dbbql3o473hc738ghsbg-a/abyssiniasend_db",
-  "SESSION_SECRET 1e1cc6464318fb1dcb46c384168de87a04f1f83077ba8530ec21f29a9d4322f2",
-  "ADMIN_EMAIL abrahamjejaw@gmail.com",
-  "ADMIN_PASSWORD @Abraham24;199324"
+  "DATABASE_URL",
+  "SESSION_SECRET",
+  "ADMIN_EMAIL",
+  "ADMIN_PASSWORD"
 ];
 
 for (const key of requiredEnv) {
   if (!process.env[key] || !process.env[key].trim()) {
     throw new Error(`Missing environment variable: ${key}`);
   }
+}
+
 }
 
 if (process.env.SESSION_SECRET.length < 32) {
