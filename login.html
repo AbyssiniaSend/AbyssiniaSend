@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AbyssiniaSend | Secure Login</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      color: #f5f7fb;
+      background: linear-gradient(135deg, #06101f, #102b4b);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 32px;
+      border: 1px solid #29415e;
+      border-radius: 18px;
+      background: #0d1c30;
+      box-shadow: 0 20px 60px #0005;
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 25px;
+      font-weight: bold;
+      color: #72c7ff;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #aabbd0;
+      margin-bottom: 25px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #29415e;
+      border-radius: 9px;
+      color: white;
+      background: #142842;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      background: #1769aa;
+      border-color: #1769aa;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 7px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #314863;
+      border-radius: 9px;
+      background: #081525;
+      color: white;
+      outline: none;
+    }
+
+    input:focus { border-color: #54b9ff; }
+
+    .submit {
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px;
+      border: 0;
+      border-radius: 9px;
+      background: #1683d5;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .submit:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    #message {
+      margin-top: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      margin-top: 22px;
+      color: #92a6bd;
+      text-align: center;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <div class="logo">AbyssiniaSend</div>
+    <p class="subtitle">Secure Account Access</p>
+
+    <div class="tabs">
+      <button type="button" id="loginTab" class="active">
+        Login
+      </button>
+      <button type="button" id="signupTab">
+        Sign Up
+      </button>
+    </div>
+
+    <form id="authForm">
+      <div id="nameGroup" hidden>
+        <label for="fullName">Full Name</label>
+        <input id="fullName" name="fullName"
+          autocomplete="name" maxlength="100">
+      </div>
+
+      <label for="email">Email Address</label>
+      <input id="email" name="email" type="email"
+        autocomplete="email" required maxlength="254">
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password"
+        autocomplete="current-password" required
+        minlength="8" maxlength="128">
+
+      <button class="submit" id="submitButton" type="submit">
+        Login Securely
+      </button>
+    </form>
+
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <div class="note">
+      Secure access · Never share your password
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById("authForm");
+    const loginTab = document.getElementById("loginTab");
+    const signupTab = document.getElementById("signupTab");
+    const nameGroup = document.getElementById("nameGroup");
+    const fullName = document.getElementById("fullName");
+    const password = document.getElementById("password");
+    const submitButton = document.getElementById("submitButton");
+    const message = document.getElementById("message");
+
+    let mode = "login";
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      const signingUp = mode === "signup";
+
+      nameGroup.hidden = !signingUp;
+      fullName.required = signingUp;
+      password.autocomplete = signingUp
+        ? "new-password"
+        : "current-password";
+
+      loginTab.classList.toggle("active", !signingUp);
+      signupTab.classList.toggle("active", signingUp);
+
+      submitButton.textContent = signingUp
+        ? "Create Account"
+        : "Login Securely";
+
+      message.textContent = "";
+    }
+
+    loginTab.addEventListener("click", () => setMode("login"));
+    signupTab.addEventListener("click", () => setMode("signup"));
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.textContent = "";
+      submitButton.disabled = true;
+
+      try {
+        const payload = {
+          fullName: fullName.value.trim(),
+          name: fullName.value.trim(),
+          full_name: fullName.value.trim(),
+          email: document.getElementById("email").value.trim(),
+          password: password.value
+        };
+
+        const response = await fetch(
+          mode === "login" ? "/api/login" : "/api/register",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify(payload)
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || data.error ||
+            "Request failed. Please check your details.");
+        }
+
+        window.location.replace("/");
+      } catch (error) {
+        message.textContent = error.message === "Failed to fetch"
+          ? "Cannot connect to the server. Please try again."
+          : error.message;
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
