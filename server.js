@@ -9,7 +9,6 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
 const requiredEnv = [
   "DATABASE_URL",
   "SESSION_SECRET",
@@ -163,7 +162,6 @@ async function initializeDatabase() {
     12
   );
 
-  // Only the configured administrator email should have admin role.
   await pool.query(
     `UPDATE app_users
      SET role = 'user'
@@ -186,13 +184,33 @@ async function initializeDatabase() {
   console.log("PostgreSQL ready. Admin account configured.");
 }
 
-// Serve the website.
+/* Login page */
+app.get("/login", (req, res) => {
+  res.set("Cache-Control", "no-store");
+
+  if (req.session.user) {
+    return res.redirect("/");
+  }
+
+  res.sendFile(path.join(__dirname, "login.html"));
+});
+
+app.get("/login.html", (req, res) => {
+  res.redirect("/login");
+});
+
+/* Protect the main website */
 app.get("/", (req, res) => {
   res.set("Cache-Control", "no-store");
+
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
+
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Check the current session.
+/* Check current login session */
 app.get("/api/me", (req, res) => {
   res.set("Cache-Control", "no-store");
 
@@ -202,10 +220,12 @@ app.get("/api/me", (req, res) => {
     });
   }
 
-  return res.json({ user: req.session.user });
+  return res.json({
+    user: req.session.user
+  });
 });
 
-// Register a regular customer account.
+/* Create a regular customer account */
 app.post("/api/register", async (req, res, next) => {
   try {
     const { fullName, email, password } = req.body || {};
@@ -274,7 +294,7 @@ app.post("/api/register", async (req, res, next) => {
   }
 });
 
-// Log in a customer or the configured administrator.
+/* Log in a customer or administrator */
 app.post("/api/login", async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
@@ -334,10 +354,12 @@ app.post("/api/login", async (req, res, next) => {
   }
 });
 
-// Log out and invalidate the session.
+/* Log out and invalidate the session */
 app.post("/api/logout", async (req, res, next) => {
   try {
-    await destroySession(req);
+    if (req.session) {
+      await destroySession(req);
+    }
 
     res.clearCookie("abyssiniasend.sid", {
       httpOnly: true,
@@ -354,7 +376,7 @@ app.post("/api/logout", async (req, res, next) => {
   }
 });
 
-// Example protected customer endpoint.
+/* Protected customer account endpoint */
 app.get("/api/account", requireLogin, async (req, res, next) => {
   try {
     const result = await pool.query(
@@ -379,7 +401,7 @@ app.get("/api/account", requireLogin, async (req, res, next) => {
   }
 });
 
-// Admin-only authorization check.
+/* Administrator authorization check */
 app.get("/api/admin/check", requireAdmin, (req, res) => {
   res.set("Cache-Control", "no-store");
 
@@ -389,7 +411,7 @@ app.get("/api/admin/check", requireAdmin, (req, res) => {
   });
 });
 
-// List customer accounts: administrator only.
+/* List customer accounts: administrator only */
 app.get("/api/admin/users", requireAdmin, async (req, res, next) => {
   try {
     const result = await pool.query(
@@ -407,7 +429,14 @@ app.get("/api/admin/users", requireAdmin, async (req, res, next) => {
   }
 });
 
-// Handle errors without exposing internal details to visitors.
+/* Unknown API routes return JSON */
+app.use("/api", (req, res) => {
+  res.status(404).json({
+    error: "API endpoint not found."
+  });
+});
+
+/* Handle server errors */
 app.use((error, req, res, next) => {
   console.error("Request failed:", error.message);
 
@@ -420,7 +449,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Start only after PostgreSQL is ready.
+/* Start only after PostgreSQL is ready */
 async function start() {
   await initializeDatabase();
   await pool.query("SELECT 1");
