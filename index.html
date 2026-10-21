@@ -1,5 +1,4 @@
-</html>
-</html>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,7 +46,7 @@
     }
 
     header {
-      background: rgba(7, 20, 38, 0.96);
+      background: rgba(7, 20, 38, 0.98);
       border-bottom: 1px solid #24354a;
       position: sticky;
       top: 0;
@@ -61,7 +60,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 18px;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      color: var(--gold);
+      font-size: 22px;
+      font-weight: bold;
+      white-space: nowrap;
     }
 
     .logo img {
@@ -73,31 +80,30 @@
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 10px;
     }
 
     .nav-links a {
       cursor: pointer;
-      padding: 6px 10px;
+      padding: 7px 9px;
       border-radius: 6px;
-      transition: background 0.2s, color 0.2s;
+      font-size: 14px;
     }
 
-    .nav-links a:hover, .nav-links a.active {
+    .nav-links a:hover,
+    .nav-links a.active {
       color: var(--gold);
       background: rgba(232, 184, 91, 0.1);
     }
 
-    /* Mobile Menu Toggle Button */
     .menu-toggle {
       display: none;
-      background: none;
+      background: transparent;
       border: 1px solid #40516a;
       color: var(--gold);
-      padding: 8px 12px;
+      padding: 7px 12px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 18px;
     }
 
     select, input {
@@ -114,20 +120,24 @@
       background: var(--gold);
       color: #101827;
       font-weight: bold;
-      padding: 12px 20px;
+      padding: 11px 17px;
       border: none;
       border-radius: 9px;
       cursor: pointer;
-      transition: opacity 0.2s;
     }
 
     .btn:hover {
       opacity: 0.88;
     }
 
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .btn-sm {
-      padding: 6px 12px;
-      font-size: 13px;
+      padding: 6px 10px;
+      font-size: 12px;
       border-radius: 6px;
     }
 
@@ -135,7 +145,21 @@
     .btn-red { background: var(--red); color: white; }
     .btn-blue { background: var(--blue); color: white; }
 
-    /* Page View Controller */
+    #logoutBtn {
+      background: #dc2626;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 13px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #logoutBtn:hover {
+      background: #b91c1c;
+    }
+
     .page-view {
       display: none;
     }
@@ -150,7 +174,7 @@
       padding: 65px 22px;
       display: grid;
       grid-template-columns: 1.4fr 1fr;
-      gap: 45px;
+      gap: 35px;
       align-items: center;
     }
 
@@ -161,9 +185,9 @@
     }
 
     h1 {
-      font-size: clamp(32px, 4vw, 50px);
-      line-height: 1.15;
-      margin-bottom: 20px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.2;
+      margin-bottom: 18px;
     }
 
     h1 span {
@@ -172,26 +196,31 @@
 
     .hero p {
       color: var(--muted);
-      margin-bottom: 25px;
-      max-width: 580px;
+      margin-bottom: 22px;
     }
 
-    .hero-card, .card, .exchange-box, .dashboard-box, .menu-card {
+    .hero-card,
+    .card,
+    .exchange-box,
+    .dashboard-box,
+    .menu-card {
       background: var(--navy-light);
       border: 1px solid #2b4058;
-      border-radius: 18px;
-      padding: 25px;
+      border-radius: 15px;
+      padding: 22px;
     }
 
-    .hero-card h2 {
+    .hero-card h2,
+    .exchange-box h3 {
       color: var(--gold);
       margin-bottom: 12px;
     }
 
     .rate {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: bold;
       margin: 12px 0;
+      overflow-wrap: anywhere;
     }
 
     .note {
@@ -200,7 +229,7 @@
     }
 
     section {
-      padding: 50px 22px;
+      padding: 45px 22px;
     }
 
     .section-inner {
@@ -210,21 +239,32 @@
 
     .section-title {
       text-align: center;
-      font-size: 30px;
+      font-size: 29px;
       margin-bottom: 10px;
     }
 
     .section-subtitle {
       text-align: center;
       color: var(--muted);
-      margin-bottom: 30px;
+      margin-bottom: 28px;
     }
 
-    /* Navigation / Menu Page Grid */
+    .demo-notice {
+      max-width: 1106px;
+      margin: 22px auto 0;
+      padding: 13px 18px;
+      width: calc(100% - 40px);
+      border: 1px solid #a16207;
+      background: #422006;
+      color: #fde68a;
+      border-radius: 9px;
+      font-size: 13px;
+    }
+
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
       margin-top: 20px;
     }
 
@@ -234,14 +274,14 @@
     }
 
     .menu-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-3px);
       border-color: var(--gold);
     }
 
     .menu-card h3 {
       color: var(--gold);
       margin-bottom: 8px;
-      font-size: 20px;
+      font-size: 19px;
     }
 
     .menu-card p {
@@ -249,25 +289,26 @@
       font-size: 14px;
     }
 
-    /* Dashboard & Transfers Section */
     .dashboard-grid {
       display: grid;
       grid-template-columns: 1fr 1.5fr;
-      gap: 25px;
+      gap: 22px;
     }
 
     .form-group {
       margin-bottom: 15px;
     }
 
-    .form-group label {
+    .form-group label,
+    .field label {
       display: block;
       color: var(--muted);
       margin-bottom: 6px;
       font-size: 14px;
     }
 
-    .form-group input, .form-group select {
+    .form-group input,
+    .form-group select {
       width: 100%;
     }
 
@@ -275,25 +316,29 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      max-height: 420px;
+      max-height: 450px;
       overflow-y: auto;
-      padding-right: 5px;
     }
 
     .transfer-item {
       background: var(--navy-card);
       border: 1px solid #2b4058;
       border-radius: 12px;
-      padding: 15px;
+      padding: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
+    }
+
+    .transfer-info {
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .transfer-info h4 {
       color: var(--gold);
-      font-size: 16px;
+      font-size: 15px;
       margin-bottom: 4px;
     }
 
@@ -308,35 +353,42 @@
       border-radius: 4px;
       font-size: 11px;
       font-weight: bold;
-      text-transform: uppercase;
       margin-top: 5px;
     }
 
-    .badge-pending { background: #3d3510; color: var(--gold); }
-    .badge-sent { background: #103d2b; color: var(--green); }
+    .badge-pending {
+      background: #3d3510;
+      color: var(--gold);
+    }
+
+    .badge-sent {
+      background: #103d2b;
+      color: var(--green);
+    }
 
     .transfer-actions {
       display: flex;
-      gap: 8px;
+      gap: 6px;
+      flex-wrap: wrap;
       flex-shrink: 0;
     }
 
     .exchange-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 25px;
+      gap: 22px;
       align-items: start;
-    }
-
-    .exchange-box h3 {
-      color: var(--gold);
-      margin-bottom: 16px;
     }
 
     .field {
       display: grid;
       gap: 7px;
       margin-bottom: 15px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
     }
 
     .exchange-result {
@@ -347,9 +399,31 @@
     }
 
     .result-number {
-      font-size: 25px;
+      font-size: 24px;
       color: var(--green);
       font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .message {
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.error {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+
+    .message.success {
+      background: #064e3b;
+      color: #a7f3d0;
     }
 
     footer {
@@ -358,29 +432,66 @@
       color: var(--muted);
       font-size: 14px;
       border-top: 1px solid #24354a;
-      margin-top: 40px;
+      margin-top: 35px;
     }
 
     @media (max-width: 850px) {
-      .hero, .exchange-layout, .dashboard-grid {
+      .hero,
+      .exchange-layout,
+      .dashboard-grid {
         grid-template-columns: 1fr;
       }
+
+      .menu-toggle {
+        display: block;
+      }
+
       .nav-links {
         display: none;
         flex-direction: column;
+        align-items: stretch;
         width: 100%;
         background: var(--navy-light);
-        position: absolute;
-        top: 100%;
-        left: 0;
-        padding: 20px;
-        border-bottom: 1px solid #2b4058;
+        padding: 15px;
+        border: 1px solid #2b4058;
+        border-radius: 10px;
       }
+
       .nav-links.show {
         display: flex;
       }
-      .menu-toggle {
-        display: block;
+
+      .nav-links select {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .navbar {
+        padding: 12px;
+        gap: 8px;
+      }
+
+      .logo {
+        font-size: 18px;
+      }
+
+      #logoutBtn {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      .transfer-item {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .transfer-actions {
+        width: 100%;
+      }
+
+      .hero {
+        padding-top: 38px;
       }
     }
   </style>
@@ -389,12 +500,14 @@
 <body>
   <header>
     <nav class="navbar">
-      <a class="logo" href="#" onclick="switchPage('home')">
-        <img src="logo.jpg" alt="AbyssiniaSend Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-        <span style="display:none; color: var(--gold); font-size: 22px; font-weight: bold;">AbyssiniaSend</span>
+      <a class="logo" href="#" onclick="switchPage('home'); return false;">
+        <img src="logo.jpg" alt="AbyssiniaSend Logo"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span style="display:none;">AbyssiniaSend</span>
       </a>
 
-      <button class="menu-toggle" id="menuToggleBtn" aria-label="Toggle Navigation">☰</button>
+      <button class="menu-toggle" id="menuToggleBtn"
+        type="button" aria-label="Toggle Navigation">☰</button>
 
       <div class="nav-links" id="navLinksContainer">
         <a id="nav-home" onclick="switchPage('home')">Home</a>
@@ -408,99 +521,136 @@
           <option value="am">አማርኛ</option>
         </select>
       </div>
+
+      <button id="logoutBtn" type="button">Logout</button>
     </nav>
   </header>
 
+  <div class="demo-notice">
+    <strong>Educational demo:</strong> This website does not send real money
+    or process real bank transfers. Transfer records are saved in this browser.
+  </div>
+
   <main>
-    <!-- PAGE 1: HOME VIEW -->
+    <!-- HOME PAGE -->
     <div id="page-home" class="page-view">
       <section class="hero">
         <div>
-          <div class="tag">SECURE • FAST • RELIABLE</div>
-          <h1>Global Money Transfers to <span>Ethiopia & Beyond.</span></h1>
-          <p>Manage real transaction requests, access live currency conversions with live exchange rate integration, and securely handle disbursements.</p>
-          <button class="btn" onclick="switchPage('menu')">Explore App Menu →</button>
+          <div class="tag">SECURE • SIMPLE • EDUCATIONAL</div>
+          <h1>Welcome to <span>AbyssiniaSend</span></h1>
+          <p>
+            Explore the transfer dashboard, test demo transaction records,
+            and learn how currency conversion interfaces work.
+          </p>
+          <button class="btn" onclick="switchPage('menu')">
+            Explore App Menu →
+          </button>
         </div>
 
         <div class="hero-card">
-          <h2>Live Market Rate</h2>
-          <p>Real-time FX Feed</p>
+          <h2>USD / ETB Reference Rate</h2>
+          <p>Latest rate retrieved by the exchange-rate API, if available.</p>
           <div class="rate" id="heroRateDisplay">Loading...</div>
-          <p class="note">Connected to live exchange API feed.</p>
+          <p class="note" id="heroRateNote">
+            The displayed rate is informational, not a transfer quote.
+          </p>
         </div>
       </section>
     </div>
 
-    <!-- PAGE 2: MENU PAGE VIEW -->
+    <!-- APP MENU -->
     <div id="page-menu" class="page-view active-page">
       <section>
         <div class="section-inner">
           <h2 class="section-title">AbyssiniaSend Application Menu</h2>
-          <p class="section-subtitle">Select a module below to navigate directly through the platform.</p>
+          <p class="section-subtitle">
+            Select a module to navigate through the demo application.
+          </p>
 
           <div class="menu-grid">
             <div class="menu-card" onclick="switchPage('home')">
               <h3>🏠 Home Portal</h3>
-              <p>Return to the main welcome dashboard and quick summary overview.</p>
+              <p>Return to the welcome page and exchange-rate overview.</p>
             </div>
 
             <div class="menu-card" onclick="switchPage('dashboard')">
               <h3>📊 Transfer Dashboard</h3>
-              <p>Manage transaction queues, submit new orders, edit records, and process payouts.</p>
+              <p>Create, edit, process, and delete demo transfer records.</p>
             </div>
 
             <div class="menu-card" onclick="switchPage('exchange')">
-              <h3>💱 Live Currency Converter</h3>
-              <p>Calculate live payouts using real-time open market exchange rate feeds.</p>
+              <h3>💱 Currency Converter</h3>
+              <p>Convert between USD, ETB, EUR, and GBP using available rates.</p>
             </div>
 
             <div class="menu-card" onclick="switchPage('ussd')">
-              <h3>📱 USSD Quick Access</h3>
-              <p>View telecom shortcodes and offline USSD codes for quick account access.</p>
+              <h3>📱 USSD Guide</h3>
+              <p>View example shortcodes for supported Ethiopian services.</p>
             </div>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- PAGE 3: DASHBOARD VIEW -->
+    <!-- DASHBOARD -->
     <div id="page-dashboard" class="page-view">
       <section>
         <div class="section-inner">
           <h2 class="section-title">Transfer Ledger & Management</h2>
-          <p class="section-subtitle">Create, edit, process, and clear real transaction records with persistent local storage.</p>
+          <p class="section-subtitle">
+            These are local demo records, not real financial transactions.
+          </p>
 
           <div class="dashboard-grid">
             <div class="dashboard-box">
-              <h3 id="formTitle" style="color: var(--gold); margin-bottom: 15px;">New Transfer Order</h3>
+              <h3 id="formTitle"
+                style="color:var(--gold); margin-bottom:15px;">
+                New Demo Transfer
+              </h3>
+
               <input type="hidden" id="editIndex" value="-1">
 
               <div class="form-group">
-                <label for="recipientName">Beneficiary Full Name</label>
-                <input type="text" id="recipientName" placeholder="e.g., Abebe Kebede">
+                <label for="recipientName">Beneficiary Name</label>
+                <input type="text" id="recipientName"
+                  maxlength="100" placeholder="Enter demo recipient name">
               </div>
 
               <div class="form-group">
-                <label for="transferAmount">Send Amount (USD)</label>
-                <input type="number" id="transferAmount" min="1" value="100">
+                <label for="transferAmount">Amount (USD)</label>
+                <input type="number" id="transferAmount"
+                  min="0.01" max="1000000" step="0.01" value="100">
               </div>
 
               <div class="form-group">
-                <label for="destinationBank">Payout Institution</label>
+                <label for="destinationBank">Demo Payout Method</label>
                 <select id="destinationBank">
-                  <option value="Commercial Bank of Ethiopia">Commercial Bank of Ethiopia (CBE)</option>
-                  <option value="Telebirr">Telebirr Wallet</option>
-                  <option value="Bank of Abyssinia">Bank of Abyssinia</option>
-                  <option value="Awash Bank">Awash Bank</option>
-                  <option value="Dashen Bank">Dashen Bank</option>
+                  <option value="Commercial Bank of Ethiopia">CBE (Demo)</option>
+                  <option value="Telebirr">Telebirr (Demo)</option>
+                  <option value="Bank of Abyssinia">Bank of Abyssinia (Demo)</option>
+                  <option value="Awash Bank">Awash Bank (Demo)</option>
+                  <option value="Dashen Bank">Dashen Bank (Demo)</option>
                 </select>
               </div>
 
-              <button class="btn btn-green" id="saveTransferBtn" style="width: 100%;">Submit Transfer Order</button>
+              <button class="btn btn-green" id="saveTransferBtn"
+                type="button" style="width:100%;">
+                Submit Demo Order
+              </button>
+
+              <button class="btn btn-blue" id="cancelEditBtn"
+                type="button" style="width:100%; margin-top:10px; display:none;">
+                Cancel Edit
+              </button>
+
+              <div id="transferMessage" class="message"
+                aria-live="polite"></div>
             </div>
 
             <div class="dashboard-box">
-              <h3 style="color: var(--gold); margin-bottom: 15px;">Transaction Queue</h3>
+              <h3 style="color:var(--gold); margin-bottom:15px;">
+                Demo Transaction Queue
+              </h3>
               <div class="transfer-list" id="transferListContainer"></div>
             </div>
           </div>
@@ -508,20 +658,23 @@
       </section>
     </div>
 
-    <!-- PAGE 4: LIVE EXCHANGE VIEW -->
+    <!-- EXCHANGE PAGE -->
     <div id="page-exchange" class="page-view">
       <section>
         <div class="section-inner">
-          <h2 class="section-title">Live Currency Converter</h2>
-          <p class="section-subtitle">Powered by real-time exchange rates (USD, ETB, EUR, GBP).</p>
+          <h2 class="section-title">Currency Converter</h2>
+          <p class="section-subtitle">
+            Informational currency conversion. No money is exchanged.
+          </p>
 
           <div class="exchange-layout">
             <div class="exchange-box">
-              <h3>Calculate Payout</h3>
+              <h3>Calculate Conversion</h3>
 
               <div class="field">
                 <label for="amount">Amount</label>
-                <input id="amount" type="number" min="0" step="any" value="100">
+                <input id="amount" type="number" min="0"
+                  step="any" value="100">
               </div>
 
               <div class="field">
@@ -544,37 +697,58 @@
                 </select>
               </div>
 
-              <button class="btn" id="convertBtn">Fetch Live Conversion</button>
+              <button class="btn" id="convertBtn" type="button">
+                Convert Currency
+              </button>
 
               <div class="exchange-result" aria-live="polite">
                 <div>Converted Amount</div>
-                <div class="result-number" id="result">Connecting...</div>
-                <p class="note" id="rateNote">Fetching latest market rates...</p>
+                <div class="result-number" id="result">Loading rates...</div>
+                <p class="note" id="rateNote">Connecting to rate service...</p>
               </div>
             </div>
 
             <div class="exchange-box">
-              <h3>API Integration Status</h3>
-              <p>🌐 <strong>Status:</strong> <span id="apiStatus" style="color: var(--green);">Connected</span></p>
-              <p>🔄 <strong>Updates:</strong> Real-time feed via open exchange rates API.</p>
+              <h3>Rate API Status</h3>
+              <p>
+                <strong>Status:</strong>
+                <span id="apiStatus">Connecting...</span>
+              </p>
               <br>
-              <p class="note">Transactions processed here utilize persistent browser local storage (`localStorage`) so your ledger items remain saved across page reloads.</p>
+              <p class="note">
+                Exchange rates may be unavailable or delayed. Rates shown here
+                are not official bank rates and must not be used to make
+                financial decisions.
+              </p>
             </div>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- PAGE 5: USSD GUIDE VIEW -->
+    <!-- USSD PAGE -->
     <div id="page-ussd" class="page-view">
-      <section style="background: #10243d; padding: 60px 20px; text-align: center;">
+      <section style="background:#10243d; text-align:center;">
         <div class="section-inner">
-          <h2 class="section-title">USSD Shortcodes for Quick Access</h2>
-          <p style="color: var(--muted); max-width: 700px; margin: 12px auto 25px;">Use your mobile phone to check balances or cash-out directly via supported telecom networks.</p>
-          <div class="dashboard-box" style="max-width: 500px; margin: auto; text-align: left;">
-            <p style="margin-bottom: 10px;">📱 <strong>Telebirr:</strong> *127#</p>
-            <p style="margin-bottom: 10px;">📱 <strong>CBE Birr:</strong> *847#</p>
-            <p>📱 <strong>Bank of Abyssinia:</strong> *815#</p>
+          <h2 class="section-title">USSD Quick Access Guide</h2>
+          <p class="section-subtitle">
+            Verify service codes with the official provider before using them.
+          </p>
+
+          <div class="dashboard-box"
+            style="max-width:600px; margin:auto; text-align:left;">
+            <p style="margin-bottom:12px;">
+              📱 <strong>Telebirr:</strong> Check the official Telebirr app or
+              provider instructions for the current USSD code.
+            </p>
+            <p style="margin-bottom:12px;">
+              📱 <strong>CBE:</strong> Check Commercial Bank of Ethiopia's
+              official service information.
+            </p>
+            <p>
+              📱 <strong>Bank of Abyssinia:</strong> Check the bank's official
+              website or customer service for its current code.
+            </p>
           </div>
         </div>
       </section>
@@ -582,59 +756,45 @@
   </main>
 
   <footer>
-    <p>© 2026 AbyssiniaSend — Production Application Build</p>
+    <p>© 2026 AbyssiniaSend — Educational Demo</p>
   </footer>
 
   <script>
-    // --- Page Routing Switcher ---
+    // ----------------------------------------
+    // PAGE NAVIGATION
+    // ----------------------------------------
     function switchPage(pageId) {
-      document.querySelectorAll('.page-view').forEach(page => {
-        page.classList.remove('active-page');
-      });
-      document.querySelectorAll('.nav-links a').forEach(link => {
-        link.classList.remove('active');
+      document.querySelectorAll(".page-view").forEach(page => {
+        page.classList.remove("active-page");
       });
 
-      const targetPage = document.getElementById('page-' + pageId);
-      const targetNav = document.getElementById('nav-' + pageId);
+      document.querySelectorAll(".nav-links a").forEach(link => {
+        link.classList.remove("active");
+      });
 
-      if (targetPage) targetPage.classList.add('active-page');
-      if (targetNav) targetNav.classList.add('active');
+      const targetPage = document.getElementById("page-" + pageId);
+      const targetNav = document.getElementById("nav-" + pageId);
 
-      // Close mobile menu on click
-      document.getElementById('navLinksContainer').classList.remove('show');
+      if (targetPage) {
+        targetPage.classList.add("active-page");
+      }
+
+      if (targetNav) {
+        targetNav.classList.add("active");
+      }
+
+      document.getElementById("navLinksContainer").classList.remove("show");
       window.scrollTo(0, 0);
     }
 
-    // Mobile menu toggle
-    document.getElementById('menuToggleBtn').addEventListener('click', () => {
-      document.getElementById('navLinksContainer').classList.toggle('show');
+    document.getElementById("menuToggleBtn").addEventListener("click", () => {
+      document.getElementById("navLinksContainer").classList.toggle("show");
     });
 
-    // --- Live Exchange Rates API Integration ---
+    // ----------------------------------------
+    // CURRENCY CONVERSION
+    // ----------------------------------------
     let exchangeRates = {};
-
-    async function fetchExchangeRates() {
-      try {
-        const response = await fetch("https://open.er-api.com/v6/latest/USD");
-        const data = await response.json();
-        if (data && data.rates) {
-          exchangeRates = data.rates;
-          document.getElementById("apiStatus").textContent = "Online & Synced";
-          document.getElementById("apiStatus").style.color = "var(--green)";
-          
-          const etbRate = exchangeRates["ETB"] ? exchangeRates["ETB"].toFixed(2) : "159.00";
-          document.getElementById("heroRateDisplay").textContent = `1 USD = ${etbRate} ETB`;
-          convertCurrency();
-        }
-      } catch (error) {
-        exchangeRates = { USD: 1, ETB: 159, EUR: 0.92, GBP: 0.79 };
-        document.getElementById("apiStatus").textContent = "Offline (Using Fallback Rates)";
-        document.getElementById("apiStatus").style.color = "var(--red)";
-        document.getElementById("heroRateDisplay").textContent = `1 USD = 159.00 ETB`;
-        convertCurrency();
-      }
-    }
 
     const amountInput = document.getElementById("amount");
     const fromSelect = document.getElementById("fromCurrency");
@@ -642,36 +802,106 @@
     const resultDiv = document.getElementById("result");
     const rateNote = document.getElementById("rateNote");
 
+    async function fetchExchangeRates() {
+      const status = document.getElementById("apiStatus");
+
+      try {
+        const response = await fetch(
+          "https://open.er-api.com/v6/latest/USD"
+        );
+
+        if (!response.ok) {
+          throw new Error("Rate service unavailable");
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.rates) {
+          throw new Error("Invalid rate data");
+        }
+
+        exchangeRates = data.rates;
+        status.textContent = "Connected";
+        status.style.color = "var(--green)";
+
+        const etbRate = exchangeRates.ETB;
+
+        document.getElementById("heroRateDisplay").textContent =
+          etbRate ? "1 USD = " + etbRate.toFixed(2) + " ETB" : "ETB rate unavailable";
+
+        document.getElementById("heroRateNote").textContent =
+          "Informational API rate; not a bank quote.";
+
+        convertCurrency();
+      } catch (error) {
+        status.textContent = "Unavailable";
+        status.style.color = "var(--red)";
+
+        document.getElementById("heroRateDisplay").textContent =
+          "Rate service unavailable";
+
+        resultDiv.textContent = "Cannot load live rates";
+        rateNote.textContent =
+          "Check your internet connection and try again.";
+      }
+    }
+
     function convertCurrency() {
       const amount = Number(amountInput.value);
       const from = fromSelect.value;
       const to = toSelect.value;
 
-      if (!Number.isFinite(amount) || amount < 0) {
-        resultDiv.textContent = "Enter valid amount";
+      if (amountInput.value.trim() === "" ||
+          !Number.isFinite(amount) || amount < 0) {
+        resultDiv.textContent = "Enter a valid amount";
         rateNote.textContent = "";
         return;
       }
 
-      if (Object.keys(exchangeRates).length === 0) return;
+      if (!exchangeRates.USD ||
+          !exchangeRates[from] ||
+          !exchangeRates[to]) {
+        resultDiv.textContent = "Rates unavailable";
+        rateNote.textContent = "Try again when the rate service is available.";
+        return;
+      }
 
       const amountInUSD = amount / exchangeRates[from];
       const convertedAmount = amountInUSD * exchangeRates[to];
 
-      resultDiv.textContent = convertedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " " + to;
-      rateNote.textContent = `1 ${from} = ${(exchangeRates[to] / exchangeRates[from]).toFixed(4)} ${to}`;
+      resultDiv.textContent =
+        convertedAmount.toLocaleString(undefined, {
+          maximumFractionDigits: 2
+        }) + " " + to;
+
+      rateNote.textContent =
+        "1 " + from + " = " +
+        (exchangeRates[to] / exchangeRates[from]).toFixed(4) +
+        " " + to;
     }
 
-    document.getElementById("convertBtn").addEventListener("click", convertCurrency);
+    document.getElementById("convertBtn")
+      .addEventListener("click", convertCurrency);
+
     amountInput.addEventListener("input", convertCurrency);
     fromSelect.addEventListener("change", convertCurrency);
     toSelect.addEventListener("change", convertCurrency);
 
-    // --- Persistent LocalStorage Transfer Ledger ---
-    let transfers = JSON.parse(localStorage.getItem("abyssinia_transfers")) || [
-      { name: "Dawit Mamo", amount: 250, bank: "Telebirr", status: "Processing" },
-      { name: "Tigist Bekele", amount: 500, bank: "Commercial Bank of Ethiopia", status: "Completed" }
-    ];
+    // ----------------------------------------
+    // DEMO TRANSFER RECORDS
+    // ----------------------------------------
+    const STORAGE_KEY = "abyssinia_transfers_demo";
+
+    function loadTransfers() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    let transfers = loadTransfers();
 
     const recipientInput = document.getElementById("recipientName");
     const transferAmountInput = document.getElementById("transferAmount");
@@ -679,38 +909,129 @@
     const saveTransferBtn = document.getElementById("saveTransferBtn");
     const editIndexInput = document.getElementById("editIndex");
     const formTitle = document.getElementById("formTitle");
-    const transferListContainer = document.getElementById("transferListContainer");
+    const transferListContainer =
+      document.getElementById("transferListContainer");
+    const transferMessage = document.getElementById("transferMessage");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    function showTransferMessage(message, type) {
+      transferMessage.textContent = message;
+      transferMessage.className = "message show " + type;
+    }
 
     function persistAndRender() {
-      localStorage.setItem("abyssinia_transfers", JSON.stringify(transfers));
-      renderTransfers();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(transfers));
+        renderTransfers();
+      } catch (error) {
+        showTransferMessage(
+          "Could not save records in this browser.",
+          "error"
+        );
+      }
+    }
+
+    function resetTransferForm() {
+      recipientInput.value = "";
+      transferAmountInput.value = "100";
+      editIndexInput.value = "-1";
+      formTitle.textContent = "New Demo Transfer";
+      saveTransferBtn.textContent = "Submit Demo Order";
+      saveTransferBtn.className = "btn btn-green";
+      cancelEditBtn.style.display = "none";
     }
 
     function renderTransfers() {
-      transferListContainer.innerHTML = "";
-      
+      transferListContainer.replaceChildren();
+
       if (transfers.length === 0) {
-        transferListContainer.innerHTML = `<p class="note" style="text-align: center; padding: 20px;">No transfer records found in queue.</p>`;
+        const empty = document.createElement("p");
+        empty.className = "note";
+        empty.style.textAlign = "center";
+        empty.style.padding = "20px";
+        empty.textContent = "No demo transfer records yet.";
+        transferListContainer.appendChild(empty);
         return;
       }
 
       transfers.forEach((item, index) => {
-        const badgeClass = item.status === "Completed" ? "badge-sent" : "badge-pending";
-        const div = document.createElement("div");
-        div.className = "transfer-item";
-        div.innerHTML = `
-          <div class="transfer-info">
-            <h4>${item.name}</h4>
-            <p>$${item.amount} USD — ${item.bank}</p>
-            <span class="badge ${badgeClass}">${item.status}</span>
-          </div>
-          <div class="transfer-actions">
-            ${item.status !== "Completed" ? `<button class="btn btn-sm btn-green" onclick="completeTransfer(${index})">Process</button>` : ""}
-            <button class="btn btn-sm btn-blue" onclick="editTransfer(${index})">Edit</button>
-            <button class="btn btn-sm btn-red" onclick="deleteTransfer(${index})">Delete</button>
-          </div>
-        `;
-        transferListContainer.appendChild(div);
+        const card = document.createElement("div");
+        card.className = "transfer-item";
+
+        const info = document.createElement("div");
+        info.className = "transfer-info";
+
+        const name = document.createElement("h4");
+        name.textContent = item.name;
+
+        const details = document.createElement("p");
+        details.textContent =
+          "$" + Number(item.amount).toFixed(2) + " USD — " + item.bank;
+
+        const badge = document.createElement("span");
+        badge.className = "badge " +
+          (item.status === "Completed" ? "badge-sent" : "badge-pending");
+        badge.textContent = item.status;
+
+        info.append(name, details, badge);
+
+        const actions = document.createElement("div");
+        actions.className = "transfer-actions";
+
+        if (item.status !== "Completed") {
+          const processBtn = document.createElement("button");
+          processBtn.type = "button";
+          processBtn.className = "btn btn-sm btn-green";
+          processBtn.textContent = "Process";
+
+          processBtn.addEventListener("click", () => {
+            transfers[index].status = "Completed";
+            persistAndRender();
+            showTransferMessage(
+              "Demo record marked completed. No money was sent.",
+              "success"
+            );
+          });
+
+          actions.appendChild(processBtn);
+        }
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn btn-sm btn-blue";
+        editBtn.textContent = "Edit";
+
+        editBtn.addEventListener("click", () => {
+          recipientInput.value = item.name;
+          transferAmountInput.value = item.amount;
+          destinationBankSelect.value = item.bank;
+          editIndexInput.value = String(index);
+
+          formTitle.textContent = "Edit Demo Transfer";
+          saveTransferBtn.textContent = "Update Demo Order";
+          saveTransferBtn.className = "btn btn-blue";
+          cancelEditBtn.style.display = "block";
+
+          switchPage("dashboard");
+          recipientInput.focus();
+        });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn btn-sm btn-red";
+        deleteBtn.textContent = "Delete";
+
+        deleteBtn.addEventListener("click", () => {
+          if (confirm("Delete this demo record?")) {
+            transfers.splice(index, 1);
+            persistAndRender();
+            showTransferMessage("Demo record deleted.", "success");
+          }
+        });
+
+        actions.append(editBtn, deleteBtn);
+        card.append(info, actions);
+        transferListContainer.appendChild(card);
       });
     }
 
@@ -718,113 +1039,85 @@
       const name = recipientInput.value.trim();
       const amount = Number(transferAmountInput.value);
       const bank = destinationBankSelect.value;
-      const editIdx = Number(editIndexInput.value);
+      const editIndex = Number(editIndexInput.value);
 
-      if (!name || amount <= 0) {
-        alert("Please enter a valid recipient name and a positive send amount.");
+      if (!name || name.length > 100 ||
+          !Number.isFinite(amount) || amount <= 0 || amount > 1000000) {
+        showTransferMessage(
+          "Enter a recipient name and a valid amount.",
+          "error"
+        );
         return;
       }
 
-      if (editIdx === -1) {
-        transfers.unshift({ name, amount, bank, status: "Processing" });
+      if (editIndex === -1) {
+        transfers.unshift({
+          name,
+          amount,
+          bank,
+          status: "Processing",
+          createdAt: new Date().toISOString()
+        });
       } else {
-        transfers[editIdx].name = name;
-        transfers[editIdx].amount = amount;
-        transfers[editIdx].bank = bank;
-        
-        editIndexInput.value = "-1";
-        formTitle.textContent = "New Transfer Order";
-        saveTransferBtn.textContent = "Submit Transfer Order";
-        saveTransferBtn.className = "btn btn-green";
+        if (!transfers[editIndex]) {
+          showTransferMessage("Record not found. Refresh and try again.", "error");
+          resetTransferForm();
+          return;
+        }
+
+        transfers[editIndex].name = name;
+        transfers[editIndex].amount = amount;
+        transfers[editIndex].bank = bank;
       }
 
-      recipientInput.value = "";
-      transferAmountInput.value = "100";
       persistAndRender();
+      resetTransferForm();
+      showTransferMessage(
+        "Demo record saved in this browser. No money was transferred.",
+        "success"
+      );
     });
 
-    window.editTransfer = function(index) {
-      const item = transfers[index];
-      recipientInput.value = item.name;
-      transferAmountInput.value = item.amount;
-      destinationBankSelect.value = item.bank;
-      editIndexInput.value = index;
-      
-      formTitle.textContent = "Edit Transfer Record";
-      saveTransferBtn.textContent = "Update Order";
-      saveTransferBtn.className = "btn btn-blue";
-      recipientInput.focus();
-    };
+    cancelEditBtn.addEventListener("click", resetTransferForm);
 
-    window.deleteTransfer = function(index) {
-      if (confirm("Are you sure you want to remove this transaction record?")) {
-        transfers.splice(index, 1);
-        persistAndRender();
-      }
-    };
+    // ----------------------------------------
+    // LOGOUT
+    // ----------------------------------------
+    document.getElementById("logoutBtn")
+      .addEventListener("click", async function () {
+        if (!confirm("Are you sure you want to log out?")) {
+          return;
+        }
 
-    window.completeTransfer = function(index) {
-      transfers[index].status = "Completed";
-      persistAndRender();
-    };
+        const button = this;
+        button.disabled = true;
+        button.textContent = "Logging out...";
 
-    fetchExchangeRates();
-    renderTransfers();
-    
-<!-- AbyssiniaSend Logout Button -->
-<style>
-  #logoutBtn {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    z-index: 9999;
-    padding: 10px 18px;
-    background: #dc2626;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-  }
+        try {
+          const response = await fetch("/api/logout", {
+            method: "POST",
+            credentials: "same-origin"
+          });
 
-  #logoutBtn:hover {
-    background: #b91c1c;
-  }
-</style>
+          if (response.ok) {
+            window.location.replace("/login");
+            return;
+          }
 
-<button id="logoutBtn" type="button">Logout</button>
+          alert("Logout failed. Please try again.");
+        } catch (error) {
+          alert("Cannot connect to the server. Please try again.");
+        }
 
-<script>
-  document.getElementById("logoutBtn").addEventListener("click", async function () {
-    const confirmed = confirm("Are you sure you want to log out?");
-
-    if (!confirmed) return;
-
-    this.disabled = true;
-    this.textContent = "Logging out...";
-
-    try {
-      const response = await fetch("/api/logout", {
-        method: "POST",
-        credentials: "same-origin"
+        button.disabled = false;
+        button.textContent = "Logout";
       });
 
-      if (response.ok) {
-        window.location.replace("/login");
-      } else {
-        alert("Logout failed. Please try again.");
-        this.disabled = false;
-        this.textContent = "Logout";
-      }
-    } catch (error) {
-      alert("Cannot connect to the server. Please try again.");
-      this.disabled = false;
-      this.textContent = "Logout";
-    }
-  });
-</script>
+    // ----------------------------------------
+    // INITIALIZE
+    // ----------------------------------------
+    fetchExchangeRates();
+    renderTransfers();
+  </script>
 </body>
 </html>
-
- 
