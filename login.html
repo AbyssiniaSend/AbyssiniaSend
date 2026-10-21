@@ -201,13 +201,10 @@
 
       try {
         const payload = {
-          fullName: fullName.value.trim(),
-          name: fullName.value.trim(),
-          full_name: fullName.value.trim(),
-          email: document.getElementById("email").value.trim(),
-          password: password.value
-        };
-
+  fullName: fullName.value.trim(),
+  email: document.getElementById("email").value.trim(),
+  password: password.value
+};
         const response = await fetch(
           mode === "login" ? "/api/login" : "/api/register",
           {
