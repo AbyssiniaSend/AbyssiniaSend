@@ -88,7 +88,9 @@
       color: #e5e9e3;
     }
 
-    input {
+    input,
+    select {
+      display: block;
       width: 100%;
       padding: 13px;
       border: 1px solid #45634f;
@@ -99,7 +101,18 @@
       font-size: 15px;
     }
 
-    input:focus {
+    select {
+      cursor: pointer;
+    }
+
+    select option,
+    select optgroup {
+      background: #0c2118;
+      color: white;
+    }
+
+    input:focus,
+    select:focus {
       border-color: #d5b65b;
       box-shadow: 0 0 0 2px #d5b65b22;
     }
@@ -204,7 +217,7 @@
 
     <img
       class="logo-image"
-    src="/logo.png"
+      src="/logo.png"
       alt="AbyssiniaSend Logo"
     >
 
@@ -222,63 +235,71 @@
     </div>
 
     <form id="authForm">
-     
-<div id="nameGroup" hidden>
-  <label for="firstName">First Name</label>
-  <input
-    id="firstName"
-    name="firstName"
-    type="text"
-    autocomplete="given-name"
-    maxlength="60"
-  >
+      <div id="nameGroup" hidden>
+        <label for="firstName">First Name</label>
+        <input
+          id="firstName"
+          name="firstName"
+          type="text"
+          autocomplete="given-name"
+          maxlength="60"
+        >
 
-  <label for="lastName">Last Name</label>
-  <input
-    id="lastName"
-    name="lastName"
-    type="text"
-    autocomplete="family-name"
-    maxlength="60"
-  >
+        <label for="lastName">Last Name</label>
+        <input
+          id="lastName"
+          name="lastName"
+          type="text"
+          autocomplete="family-name"
+          maxlength="60"
+        >
 
-  <label for="country">Country</label>
-  <select id="country" name="country">
-    <option value="">Select your country</option>
+        <label for="country">Country</label>
+        <select id="country" name="country">
+          <option value="">Select your country</option>
 
-    <optgroup label="North America">
-      <option value="United States">United States</option>
-      <option value="Canada">Canada</option>
-    </optgroup>
+          <optgroup label="North America">
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+          </optgroup>
 
-    <optgroup label="Africa">
-      <option value="Ethiopia">Ethiopia</option>
-    </optgroup>
+          <optgroup label="Africa">
+            <option value="Ethiopia">Ethiopia</option>
+          </optgroup>
 
-    <optgroup label="Europe">
-      <option value="United Kingdom">United Kingdom</option>
-      <option value="Germany">Germany</option>
-      <option value="France">France</option>
-      <option value="Italy">Italy</option>
-      <option value="Netherlands">Netherlands</option>
-      <option value="Sweden">Sweden</option>
-      <option value="Spain">Spain</option>
-      <option value="Switzerland">Switzerland</option>
-    </optgroup>
+          <optgroup label="Europe">
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Germany">Germany</option>
+            <option value="France">France</option>
+            <option value="Italy">Italy</option>
+            <option value="Netherlands">Netherlands</option>
+            <option value="Sweden">Sweden</option>
+            <option value="Spain">Spain</option>
+            <option value="Switzerland">Switzerland</option>
+          </optgroup>
 
-    <optgroup label="Middle East">
-      <option value="United Arab Emirates">United Arab Emirates</option>
-      <option value="Saudi Arabia">Saudi Arabia</option>
-      <option value="Qatar">Qatar</option>
-      <option value="Kuwait">Kuwait</option>
-      <option value="Israel">Israel</option>
-      <option value="Jordan">Jordan</option>
-    </optgroup>
+          <optgroup label="Middle East">
+            <option value="United Arab Emirates">United Arab Emirates</option>
+            <option value="Saudi Arabia">Saudi Arabia</option>
+            <option value="Qatar">Qatar</option>
+            <option value="Kuwait">Kuwait</option>
+            <option value="Israel">Israel</option>
+            <option value="Jordan">Jordan</option>
+          </optgroup>
 
-    <option value="Other">Other</option>
-  </select>
-</div>
+          <option value="Other">Other</option>
+        </select>
 
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          maxlength="128"
+        >
+      </div>
 
       <label for="email">Email Address</label>
       <input
@@ -344,7 +365,10 @@
     const loginTab = document.getElementById("loginTab");
     const signupTab = document.getElementById("signupTab");
     const nameGroup = document.getElementById("nameGroup");
-    const fullName = document.getElementById("fullName");
+    const firstName = document.getElementById("firstName");
+    const lastName = document.getElementById("lastName");
+    const country = document.getElementById("country");
+    const confirmPassword = document.getElementById("confirmPassword");
     const email = document.getElementById("email");
     const password = document.getElementById("password");
     const submitButton = document.getElementById("submitButton");
@@ -358,7 +382,11 @@
       const signingUp = mode === "signup";
 
       nameGroup.hidden = !signingUp;
-      fullName.required = signingUp;
+
+      firstName.required = signingUp;
+      lastName.required = signingUp;
+      country.required = signingUp;
+      confirmPassword.required = signingUp;
 
       password.autocomplete = signingUp
         ? "new-password"
@@ -381,14 +409,30 @@
       event.preventDefault();
 
       message.textContent = "";
+
+      if (
+        mode === "signup" &&
+        password.value !== confirmPassword.value
+      ) {
+        message.textContent = "Passwords do not match.";
+        confirmPassword.focus();
+        return;
+      }
+
       submitButton.disabled = true;
 
       try {
         const payload = {
-          fullName: fullName.value.trim(),
           email: email.value.trim(),
           password: password.value
         };
+
+        if (mode === "signup") {
+          payload.firstName = firstName.value.trim();
+          payload.lastName = lastName.value.trim();
+          payload.country = country.value;
+          payload.confirmPassword = confirmPassword.value;
+        }
 
         const response = await fetch(
           mode === "login" ? "/api/login" : "/api/register",
