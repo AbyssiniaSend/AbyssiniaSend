@@ -240,9 +240,18 @@ async function initializeDatabase() {
   console.log("PostgreSQL ready. Admin account configured.");
 }
 /* Serve the brand logo only */
-app.get("/AbyssiniaSend Global Transfer Logo.png", (req, res) => {
+app.get("/logo.png", (req, res) => {
   res.sendFile(
-    path.join(__dirname, "AbyssiniaSend Global Transfer Logo.png")
+    path.join(__dirname, "AbyssiniaSend Global Transfer Logo.png"),
+    (error) => {
+      if (error) {
+        console.error("Logo file error:", error.message);
+
+        if (!res.headersSent) {
+          res.status(404).send("Logo file not found on server.");
+        }
+      }
+    }
   );
 });
 /* Login page */
