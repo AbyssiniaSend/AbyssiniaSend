@@ -239,7 +239,12 @@ async function initializeDatabase() {
 
   console.log("PostgreSQL ready. Admin account configured.");
 }
-
+/* Serve the brand logo only */
+app.get("/AbyssiniaSend Global Transfer Logo.png", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "AbyssiniaSend Global Transfer Logo.png")
+  );
+});
 /* Login page */
 app.get("/login", (req, res) => {
   res.set("Cache-Control", "no-store");
