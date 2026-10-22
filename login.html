@@ -1,10 +1,10 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#06101f">
+  <meta name="theme-color" content="#071b16">
   <title>AbyssiniaSend | Secure Login</title>
 
   <style>
@@ -20,31 +20,41 @@
       justify-content: center;
       padding: 20px;
       font-family: Arial, sans-serif;
-      color: #f5f7fb;
-      background: linear-gradient(135deg, #06101f, #102b4b);
+      color: #f5f7f2;
+      background: linear-gradient(135deg, #061510, #123d2b);
     }
 
     .card {
       width: 100%;
-      max-width: 430px;
+      max-width: 440px;
       padding: 32px;
-      border: 1px solid #29415e;
-      border-radius: 18px;
-      background: #0d1c30;
-      box-shadow: 0 20px 60px #0005;
+      border: 1px solid #b89b50;
+      border-radius: 20px;
+      background: #0c2118;
+      box-shadow: 0 20px 60px #0007;
     }
 
-    .logo {
+    .logo-image {
+      display: block;
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin: 0 auto 16px;
+    }
+
+    .brand-name {
       text-align: center;
-      font-size: 27px;
+      font-size: 28px;
       font-weight: bold;
-      color: #72c7ff;
+      color: #e3c46b;
+      margin: 0 0 8px;
+      letter-spacing: .3px;
     }
 
     .subtitle {
       text-align: center;
-      color: #aabbd0;
-      margin-bottom: 26px;
+      color: #c3d1c8;
+      margin: 0 0 26px;
       line-height: 1.5;
     }
 
@@ -57,51 +67,59 @@
     .tabs button {
       flex: 1;
       padding: 12px;
-      border: 1px solid #29415e;
+      border: 1px solid #355846;
       border-radius: 9px;
-      color: white;
-      background: #142842;
+      color: #f5f7f2;
+      background: #142e21;
       cursor: pointer;
       font-size: 15px;
     }
 
     .tabs button.active {
-      background: #1769aa;
-      border-color: #1769aa;
+      background: #1e6847;
+      border-color: #d5b65b;
+      color: #ffffff;
     }
 
     label {
       display: block;
       margin: 14px 0 7px;
       font-size: 14px;
+      color: #e5e9e3;
     }
 
     input {
       width: 100%;
       padding: 13px;
-      border: 1px solid #314863;
+      border: 1px solid #45634f;
       border-radius: 9px;
-      background: #081525;
+      background: #081810;
       color: white;
       outline: none;
       font-size: 15px;
     }
 
     input:focus {
-      border-color: #54b9ff;
+      border-color: #d5b65b;
+      box-shadow: 0 0 0 2px #d5b65b22;
     }
 
     .submit {
       width: 100%;
       margin-top: 22px;
       padding: 14px;
-      border: 0;
+      border: 1px solid #e2c46a;
       border-radius: 9px;
-      background: #1683d5;
-      color: white;
+      background: #1e6847;
+      color: #ffffff;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      transition: background .2s;
+    }
+
+    .submit:hover {
+      background: #287d56;
     }
 
     .submit:disabled {
@@ -114,14 +132,14 @@
       align-items: center;
       gap: 12px;
       margin: 22px 0;
-      color: #92a6bd;
+      color: #b9c9bd;
       font-size: 13px;
     }
 
     .divider span {
       flex: 1;
       height: 1px;
-      background: #29415e;
+      background: #355846;
     }
 
     .google-button {
@@ -154,7 +172,7 @@
 
     .note {
       margin-top: 24px;
-      color: #92a6bd;
+      color: #b9c9bd;
       text-align: center;
       font-size: 12px;
       line-height: 1.7;
@@ -168,14 +186,29 @@
       .card {
         padding: 24px 20px;
       }
+
+      .logo-image {
+        width: 100px;
+        height: 100px;
+      }
+
+      .brand-name {
+        font-size: 25px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <img src="Abyssiniasend%20global%20transfer%20logo.png" alt="AbyssiniaSend Logo">
   <main class="card">
-    <div class="logo">AbyssiniaSend</div>
+
+    <img
+      class="logo-image"
+      src="Abyssiniasend%20global%20transfer%20logo.png"
+      alt="AbyssiniaSend Logo"
+    >
+
+    <h1 class="brand-name">AbyssiniaSend</h1>
     <p class="subtitle">Secure Account Access</p>
 
     <div class="tabs">
@@ -255,6 +288,7 @@
     <div class="note">
       Secure access · Never share your password
     </div>
+
   </main>
 
   <script>
@@ -343,3 +377,4 @@
   </script>
 </body>
 </html>
+```
