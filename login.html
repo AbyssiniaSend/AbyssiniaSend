@@ -1,13 +1,24 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#071b16">
-  <title>AbyssiniaSend | Secure Login</title>
+  <meta name="theme-color" content="#071426">
+  <title>AbyssiniaSend | Secure Account</title>
 
   <style>
+    :root {
+      --navy: #071426;
+      --card: #10243d;
+      --gold: #f5c451;
+      --white: #ffffff;
+      --muted: #b7c4d6;
+      --border: #2a405c;
+      --danger: #ff7777;
+      --success: #78e0a3;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -15,463 +26,556 @@
     body {
       margin: 0;
       min-height: 100vh;
+      padding: 24px 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-      color: #f5f7f2;
-      background: linear-gradient(135deg, #061510, #123d2b);
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--white);
+      background:
+        radial-gradient(circle at top, #183453 0, var(--navy) 55%);
     }
 
-    .card {
+    .container {
       width: 100%;
-      max-width: 440px;
-      padding: 32px;
-      border: 1px solid #b89b50;
-      border-radius: 20px;
-      background: #0c2118;
-      box-shadow: 0 20px 60px #0007;
+      max-width: 460px;
     }
 
-    .logo-image {
-      display: block;
-      width: 120px;
-      height: 120px;
-      object-fit: contain;
-      margin: 0 auto 16px;
-    }
-
-    .brand-name {
+    .brand {
       text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      color: #e3c46b;
-      margin: 0 0 8px;
-      letter-spacing: .3px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #c3d1c8;
-      margin: 0 0 26px;
-      line-height: 1.5;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
       margin-bottom: 22px;
     }
 
-    .tabs button {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #355846;
-      border-radius: 9px;
-      color: #f5f7f2;
-      background: #142e21;
-      cursor: pointer;
-      font-size: 15px;
+    .brand h1 {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: 30px;
     }
 
-    .tabs button.active {
-      background: #1e6847;
-      border-color: #d5b65b;
-      color: #ffffff;
+    .brand p {
+      color: var(--muted);
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 18px 45px #0005;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 5px;
+      margin-bottom: 22px;
+      border-radius: 12px;
+      background: #071426;
+    }
+
+    .tab {
+      padding: 12px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .tab.active {
+      background: var(--gold);
+      color: #071426;
+    }
+
+    .field {
+      margin-bottom: 15px;
+    }
+
+    .name-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
     label {
       display: block;
-      margin: 14px 0 7px;
-      font-size: 14px;
-      color: #e5e9e3;
+      margin-bottom: 7px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #e4ebf5;
     }
 
     input,
     select {
       display: block;
       width: 100%;
-      padding: 13px;
-      border: 1px solid #45634f;
+      min-height: 46px;
+      padding: 12px;
+      border: 1px solid var(--border);
       border-radius: 9px;
-      background: #081810;
-      color: white;
-      outline: none;
+      background: #071426;
+      color: var(--white);
       font-size: 15px;
-    }
-
-    select {
-      cursor: pointer;
-    }
-
-    select option,
-    select optgroup {
-      background: #0c2118;
-      color: white;
+      outline: none;
     }
 
     input:focus,
     select:focus {
-      border-color: #d5b65b;
-      box-shadow: 0 0 0 2px #d5b65b22;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px #f5c45122;
     }
 
-    .submit {
+    select option {
+      background: #10243d;
+      color: white;
+    }
+
+    .primary-btn,
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
       width: 100%;
-      margin-top: 22px;
-      padding: 14px;
-      border: 1px solid #e2c46a;
+      min-height: 48px;
       border-radius: 9px;
-      background: #1e6847;
-      color: #ffffff;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       cursor: pointer;
-      transition: background .2s;
+      text-decoration: none;
     }
 
-    .submit:hover {
-      background: #287d56;
+    .primary-btn {
+      margin-top: 8px;
+      border: 0;
+      background: var(--gold);
+      color: #071426;
     }
 
-    .submit:disabled {
-      opacity: .6;
+    .primary-btn:disabled {
+      opacity: 0.6;
       cursor: wait;
+    }
+
+    .google-btn {
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #202124;
+    }
+
+    .google-icon {
+      font-size: 19px;
+      font-weight: bold;
+      color: #4285f4;
     }
 
     .divider {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin: 22px 0;
-      color: #b9c9bd;
-      font-size: 13px;
+      margin: 20px 0;
+      color: var(--muted);
+      font-size: 12px;
     }
 
-    .divider span {
-      flex: 1;
+    .divider::before,
+    .divider::after {
+      content: "";
       height: 1px;
-      background: #355846;
+      flex: 1;
+      background: var(--border);
     }
 
-    .google-button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-      padding: 13px;
-      border: 1px solid #d1d5db;
+    .message {
+      display: none;
+      padding: 12px;
+      margin-bottom: 16px;
       border-radius: 9px;
-      background: #ffffff;
-      color: #202124;
-      text-decoration: none;
-      font-size: 15px;
-      font-weight: bold;
-      transition: background .2s;
-    }
-
-    .google-button:hover {
-      background: #eaf1f8;
-    }
-
-    #message {
-      margin-top: 16px;
       font-size: 14px;
       line-height: 1.5;
       overflow-wrap: anywhere;
     }
 
-    .note {
-      margin-top: 24px;
-      color: #b9c9bd;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.7;
+    .message.error {
+      display: block;
+      color: var(--danger);
+      background: #ff777714;
+      border: 1px solid #ff777744;
     }
 
-    [hidden] {
+    .message.success {
+      display: block;
+      color: var(--success);
+      background: #78e0a314;
+      border: 1px solid #78e0a344;
+    }
+
+    .hidden {
       display: none !important;
     }
 
-    @media (max-width: 420px) {
+    .note {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 380px) {
       .card {
-        padding: 24px 20px;
+        padding: 18px;
       }
 
-      .logo-image {
-        width: 100px;
-        height: 100px;
-      }
-
-      .brand-name {
-        font-size: 25px;
+      .name-row {
+        grid-template-columns: 1fr;
+        gap: 0;
       }
     }
   </style>
 </head>
 
 <body>
-  <main class="card">
-    <img
-      class="logo-image"
-      src="/logo.png"
-      alt="AbyssiniaSend Logo"
-    >
+  <main class="container">
+    <header class="brand">
+      <h1>AbyssiniaSend</h1>
+      <p>Secure access to your account</p>
+    </header>
 
-    <h1 class="brand-name">AbyssiniaSend</h1>
-    <p class="subtitle">Secure Account Access</p>
+    <section class="card">
+      <div class="tabs">
+        <button
+          type="button"
+          id="loginTab"
+          class="tab active">
+          Login
+        </button>
 
-    <div class="tabs">
-      <button type="button" id="loginTab" class="active">
-        Login
-      </button>
-
-      <button type="button" id="signupTab">
-        Sign Up
-      </button>
-    </div>
-
-    <form id="authForm" novalidate>
-      <div id="nameGroup" hidden>
-        <label for="firstName">First Name</label>
-        <input
-          id="firstName"
-          name="firstName"
-          type="text"
-          autocomplete="given-name"
-          maxlength="60"
-        >
-
-        <label for="lastName">Last Name</label>
-        <input
-          id="lastName"
-          name="lastName"
-          type="text"
-          autocomplete="family-name"
-          maxlength="60"
-        >
-
-        <label for="country">Country</label>
-        <select id="country" name="country">
-          <option value="">🌍 Select your country</option>
-
-          <optgroup label="🌎 North America">
-            <option value="United States">🇺🇸 United States</option>
-            <option value="Canada">🇨🇦 Canada</option>
-          </optgroup>
-
-          <optgroup label="🌍 Africa">
-            <option value="Ethiopia">🇪🇹 Ethiopia</option>
-          </optgroup>
-
-          <optgroup label="🌍 Europe">
-            <option value="United Kingdom">🇬🇧 United Kingdom</option>
-            <option value="Germany">🇩🇪 Germany</option>
-            <option value="France">🇫🇷 France</option>
-            <option value="Italy">🇮🇹 Italy</option>
-            <option value="Netherlands">🇳🇱 Netherlands</option>
-            <option value="Sweden">🇸🇪 Sweden</option>
-            <option value="Spain">🇪🇸 Spain</option>
-            <option value="Switzerland">🇨🇭 Switzerland</option>
-          </optgroup>
-
-          <optgroup label="🌏 Middle East">
-            <option value="United Arab Emirates">🇦🇪 United Arab Emirates</option>
-            <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
-            <option value="Qatar">🇶🇦 Qatar</option>
-            <option value="Kuwait">🇰🇼 Kuwait</option>
-            <option value="Israel">🇮🇱 Israel</option>
-            <option value="Jordan">🇯🇴 Jordan</option>
-          </optgroup>
-
-          <option value="Other">🌐 Other</option>
-        </select>
+        <button
+          type="button"
+          id="signupTab"
+          class="tab">
+          Sign Up
+        </button>
       </div>
 
-      <label for="email">Email Address</label>
-      <input
-        id="email"
-        name="email"
-        type="email"
-        autocomplete="email"
-        required
-        maxlength="254"
-      >
+      <div id="message" class="message" role="status" aria-live="polite"></div>
 
-      <label for="password">Password</label>
-      <input
-        id="password"
-        name="password"
-        type="password"
-        autocomplete="current-password"
-        required
-        minlength="8"
-        maxlength="72"
-      >
+      <form id="authForm" novalidate>
+        <div id="signupFields" class="hidden">
+          <div class="name-row">
+            <div class="field">
+              <label for="firstName">First Name</label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                autocomplete="given-name"
+                maxlength="60"
+                placeholder="First name">
+            </div>
 
-      <div id="confirmGroup" hidden>
-        <label for="confirmPassword">Confirm Password</label>
-        <input
-          id="confirmPassword"
-          name="confirmPassword"
-          type="password"
-          autocomplete="new-password"
-          minlength="8"
-          maxlength="72"
-        >
-      </div>
+            <div class="field">
+              <label for="lastName">Last Name</label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                autocomplete="family-name"
+                maxlength="60"
+                placeholder="Last name">
+            </div>
+          </div>
 
-      <button class="submit" id="submitButton" type="submit">
-        Login Securely
-      </button>
-    </form>
+          <div class="field">
+            <label for="country">Country</label>
+            <select id="country" name="country">
+              <option value="">🌍 Select your country</option>
+            </select>
+          </div>
+        </div>
 
-    <div class="divider">
-      <span></span>
-      OR
-      <span></span>
-    </div>
+        <div class="field">
+          <label for="email">Email Address</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            maxlength="254"
+            placeholder="you@example.com"
+            required>
+        </div>
 
-    <a class="google-button" href="/auth/google">
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 48 48"
-        aria-hidden="true"
-      >
-        <path fill="#EA4335"
-          d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-        <path fill="#4285F4"
-          d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.73 7.18l7.64 5.92c4.46-4.12 7.13-10.2 7.13-17.57z"/>
-        <path fill="#FBBC05"
-          d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78z"/>
-        <path fill="#34A853"
-          d="M24 48c6.48 0 11.93-2.13 15.9-5.78l-7.64-5.92c-2.12 1.42-4.84 2.26-8.26 2.26-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-      </svg>
-      Continue with Google
-    </a>
+        <div class="field">
+          <label for="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            minlength="8"
+            placeholder="Enter your password"
+            required>
+        </div>
 
-    <p id="message" role="status" aria-live="polite"></p>
+        <div id="confirmField" class="field hidden">
+          <label for="confirmPassword">Confirm Password</label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            minlength="8"
+            placeholder="Enter your password again">
+        </div>
 
-    <div class="note">
-      Secure access · Never share your password
-    </div>
+        <button
+          type="submit"
+          id="submitBtn"
+          class="primary-btn">
+          Login
+        </button>
+      </form>
+
+      <div class="divider">OR</div>
+
+      <a class="google-btn" href="/auth/google">
+        <span class="google-icon">G</span>
+        <span>Continue with Google</span>
+      </a>
+
+      <p class="note">
+        AbyssiniaSend is a demonstration project.
+        No real money transfers are performed.
+      </p>
+    </section>
+
+    <footer class="footer">
+      © <span id="year"></span> AbyssiniaSend
+    </footer>
   </main>
 
   <script>
-    const form = document.getElementById("authForm");
+    "use strict";
+
+    const authForm = document.getElementById("authForm");
     const loginTab = document.getElementById("loginTab");
     const signupTab = document.getElementById("signupTab");
-    const nameGroup = document.getElementById("nameGroup");
-    const confirmGroup = document.getElementById("confirmGroup");
-
+    const signupFields = document.getElementById("signupFields");
+    const confirmField = document.getElementById("confirmField");
     const firstName = document.getElementById("firstName");
     const lastName = document.getElementById("lastName");
     const country = document.getElementById("country");
     const email = document.getElementById("email");
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
-
-    const submitButton = document.getElementById("submitButton");
+    const submitBtn = document.getElementById("submitBtn");
     const message = document.getElementById("message");
 
     let mode = "login";
 
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+
+    // ISO country/territory codes with flags.
+    const countryCodes = [
+      "AD","AE","AF","AG","AI","AL","AM","AO","AQ","AR","AS","AT",
+      "AU","AW","AX","AZ","BA","BB","BD","BE","BF","BG","BH","BI",
+      "BJ","BL","BM","BN","BO","BQ","BR","BS","BT","BV","BW","BY",
+      "BZ","CA","CC","CD","CF","CG","CH","CI","CK","CL","CM","CN",
+      "CO","CR","CU","CV","CW","CX","CY","CZ","DE","DJ","DK","DM",
+      "DO","DZ","EC","EE","EG","EH","ER","ES","ET","FI","FJ","FK",
+      "FM","FO","FR","GA","GB","GD","GE","GF","GG","GH","GI","GL",
+      "GM","GN","GP","GQ","GR","GS","GT","GU","GW","GY","HK","HM",
+      "HN","HR","HT","HU","ID","IE","IL","IM","IN","IO","IQ","IR",
+      "IS","IT","JE","JM","JO","JP","KE","KG","KH","KI","KM","KN",
+      "KP","KR","KW","KY","KZ","LA","LB","LC","LI","LK","LR","LS",
+      "LT","LU","LV","LY","MA","MC","MD","ME","MF","MG","MH","MK",
+      "ML","MM","MN","MO","MP","MQ","MR","MS","MT","MU","MV","MW",
+      "MX","MY","MZ","NA","NC","NE","NF","NG","NI","NL","NO","NP",
+      "NR","NU","NZ","OM","PA","PE","PF","PG","PH","PK","PL","PM",
+      "PN","PR","PS","PT","PW","PY","QA","RE","RO","RS","RU","RW",
+      "SA","SB","SC","SD","SE","SG","SH","SI","SJ","SK","SL","SM",
+      "SN","SO","SR","SS","ST","SV","SX","SY","SZ","TC","TD","TF",
+      "TG","TH","TJ","TK","TL","TM","TN","TO","TR","TT","TV","TW",
+      "TZ","UA","UG","UM","US","UY","UZ","VA","VC","VE","VG","VI",
+      "VN","VU","WF","WS","YE","YT","ZA","ZM","ZW"
+    ];
+
+    const countryNames = new Intl.DisplayNames(["en"], {
+      type: "region"
+    });
+
+    function flagEmoji(code) {
+      return String.fromCodePoint(
+        ...Array.from(code, char => 127397 + char.charCodeAt(0))
+      );
+    }
+
+    countryCodes
+      .map(code => ({
+        code,
+        name: countryNames.of(code)
+      }))
+      .filter(item => item.name && item.name !== item.code)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.code;
+        option.textContent =
+          `${flagEmoji(item.code)} ${item.name}`;
+        country.appendChild(option);
+      });
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "message " + type;
+    }
+
+    function clearMessage() {
+      message.textContent = "";
+      message.className = "message";
+    }
+
     function setMode(nextMode) {
       mode = nextMode;
-      const signingUp = mode === "signup";
+      const isSignup = mode === "signup";
 
-      nameGroup.hidden = !signingUp;
-      confirmGroup.hidden = !signingUp;
+      loginTab.classList.toggle("active", !isSignup);
+      signupTab.classList.toggle("active", isSignup);
 
-      firstName.required = signingUp;
-      lastName.required = signingUp;
-      country.required = signingUp;
-      confirmPassword.required = signingUp;
+      signupFields.classList.toggle("hidden", !isSignup);
+      confirmField.classList.toggle("hidden", !isSignup);
 
-      password.autocomplete = signingUp
+      firstName.required = isSignup;
+      lastName.required = isSignup;
+      country.required = isSignup;
+      confirmPassword.required = isSignup;
+
+      password.autocomplete = isSignup
         ? "new-password"
         : "current-password";
 
-      loginTab.classList.toggle("active", !signingUp);
-      signupTab.classList.toggle("active", signingUp);
-
-      submitButton.textContent = signingUp
+      submitBtn.textContent = isSignup
         ? "Create Account"
-        : "Login Securely";
+        : "Login";
 
-      message.textContent = "";
+      clearMessage();
     }
 
     loginTab.addEventListener("click", () => setMode("login"));
     signupTab.addEventListener("click", () => setMode("signup"));
 
-    form.addEventListener("submit", async (event) => {
+    authForm.addEventListener("submit", async event => {
       event.preventDefault();
-      message.textContent = "";
+      clearMessage();
 
-      if (!form.reportValidity()) {
+      if (!authForm.reportValidity()) {
         return;
       }
 
-      if (
-        mode === "signup" &&
-        password.value !== confirmPassword.value
-      ) {
-        message.textContent = "Passwords do not match.";
-        confirmPassword.focus();
-        return;
-      }
+      const cleanEmail = email.value.trim().toLowerCase();
+      const cleanPassword = password.value;
 
-      submitButton.disabled = true;
-
-      try {
-        const payload = {
-          email: email.value.trim(),
-          password: password.value
-        };
-
-        if (mode === "signup") {
-          payload.firstName = firstName.value.trim();
-          payload.lastName = lastName.value.trim();
-          payload.country = country.value;
-          payload.confirmPassword = confirmPassword.value;
+      if (mode === "signup") {
+        if (firstName.value.trim().length < 1 ||
+            lastName.value.trim().length < 1) {
+          showMessage("Please enter your first and last name.", "error");
+          return;
         }
 
-        const response = await fetch(
-          mode === "login" ? "/api/login" : "/api/register",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            credentials: "same-origin",
-            body: JSON.stringify(payload)
-          }
-        );
+        if (cleanPassword.length < 8) {
+          showMessage("Password must be at least 8 characters.", "error");
+          return;
+        }
 
-        const data = await response.json();
+        if (cleanPassword !== confirmPassword.value) {
+          showMessage("Passwords do not match.", "error");
+          return;
+        }
+
+        if (!country.value) {
+          showMessage("Please select your country.", "error");
+          return;
+        }
+      }
+
+      const payload = {
+        email: cleanEmail,
+        password: cleanPassword
+      };
+
+      let endpoint = "/api/login";
+
+      if (mode === "signup") {
+        endpoint = "/api/register";
+        payload.firstName = firstName.value.trim();
+        payload.lastName = lastName.value.trim();
+        payload.country = country.value;
+        payload.confirmPassword = confirmPassword.value;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = mode === "signup"
+        ? "Creating account..."
+        : "Logging in...";
+
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "same-origin",
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json().catch(() => ({}));
 
         if (!response.ok) {
           throw new Error(
-            data.message ||
-            data.error ||
-            "Request failed. Please check your details."
+            result.message ||
+            result.error ||
+            "Request failed. Please try again."
           );
         }
 
+        showMessage(
+          mode === "signup"
+            ? "Account created. Opening your account..."
+            : "Login successful. Opening your account...",
+          "success"
+        );
+
         window.location.replace("/");
       } catch (error) {
-        message.textContent =
-          error.message === "Failed to fetch"
-            ? "Cannot connect to the server. Please try again."
-            : error.message;
+        showMessage(
+          error.message || "A network error occurred. Please try again.",
+          "error"
+        );
       } finally {
-        submitButton.disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = mode === "signup"
+          ? "Create Account"
+          : "Login";
       }
     });
+
+    setMode("login");
   </script>
 </body>
 </html>
+```
