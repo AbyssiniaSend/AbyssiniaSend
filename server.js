@@ -191,7 +191,6 @@ async function initializeDatabase() {
     )
   `);
 
-  // Allow Google-only accounts to have no local password.
   await pool.query(`
     ALTER TABLE app_users
     ALTER COLUMN password_hash DROP NOT NULL
@@ -249,11 +248,11 @@ app.get("/login", (req, res) => {
     return res.redirect("/");
   }
 
-  res.sendFile(path.join(__dirname, "login.html"));
+  return res.sendFile(path.join(__dirname, "login.html"));
 });
 
 app.get("/login.html", (req, res) => {
-  res.redirect("/login");
+  return res.redirect("/login");
 });
 
 /* Start Google OAuth login */
@@ -296,8 +295,6 @@ app.get("/auth/google/callback", async (req, res, next) => {
     }
 
     const saved = req.session.googleOAuth;
-
-    // Reject missing, expired, or mismatched OAuth state.
     delete req.session.googleOAuth;
 
     if (
@@ -364,7 +361,6 @@ app.get("/auth/google/callback", async (req, res, next) => {
       return res.status(400).send("Google returned an invalid email.");
     }
 
-    // Google login must never create or grant an admin account.
     if (email === ADMIN_EMAIL) {
       return res.status(403).send(
         "Please use the administrator email and password login."
@@ -373,7 +369,6 @@ app.get("/auth/google/callback", async (req, res, next) => {
 
     let userRecord;
 
-    // Reuse only an account explicitly linked to this Google subject.
     const linked = await pool.query(
       `SELECT u.id, u.full_name, u.email, u.role
        FROM oauth_accounts o
@@ -386,7 +381,6 @@ app.get("/auth/google/callback", async (req, res, next) => {
     if (linked.rows[0]) {
       userRecord = linked.rows[0];
     } else {
-      // Do not silently link a pre-existing password account by email.
       const existing = await pool.query(
         `SELECT id FROM app_users WHERE email = $1`,
         [email]
@@ -439,7 +433,6 @@ app.get("/auth/google/callback", async (req, res, next) => {
       }
     }
 
-    // Never trust the role from a Google profile.
     const user = safeUser({
       ...userRecord,
       role: userRecord.email.toLowerCase() === ADMIN_EMAIL
@@ -447,7 +440,6 @@ app.get("/auth/google/callback", async (req, res, next) => {
         : "user"
     });
 
-    // Rotate session ID after authentication.
     await regenerateSession(req);
     req.session.user = user;
     await saveSession(req);
@@ -458,7 +450,22 @@ app.get("/auth/google/callback", async (req, res, next) => {
   }
 });
 
-/* Protect the main website */
+/* Admin Dashboard: admin account only */
+app.get("/admin", (req, res) => {
+  res.set("Cache-Control", "no-store");
+
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
+
+  if (req.session.user.role !== "admin") {
+    return res.redirect("/");
+  }
+
+  return res.sendFile(path.join(__dirname, "admin.html"));
+});
+
+/* User Dashboard: regular users only */
 app.get("/", (req, res) => {
   res.set("Cache-Control", "no-store");
 
@@ -466,7 +473,11 @@ app.get("/", (req, res) => {
     return res.redirect("/login");
   }
 
-  res.sendFile(path.join(__dirname, "index.html"));
+  if (req.session.user.role === "admin") {
+    return res.redirect("/admin");
+  }
+
+  return res.sendFile(path.join(__dirname, "index.html"));
 });
 
 /* Check current login session */
@@ -686,7 +697,7 @@ app.get("/api/admin/users", requireAdmin, async (req, res, next) => {
 
 /* Unknown API routes return JSON */
 app.use("/api", (req, res) => {
-  res.status(404).json({
+  return res.status(404).json({
     error: "API endpoint not found."
   });
 });
