@@ -516,31 +516,71 @@ app.get("/api/me", (req, res) => {
 /* Create a regular customer account */
 app.post("/api/register", async (req, res, next) => {
   try {
-    const { fullName, email, password } = req.body || {};
+    const {
+      firstName,
+      lastName,
+      country,
+      email,
+      password,
+      confirmPassword
+    } = req.body || {};
 
     if (
-      typeof fullName !== "string" ||
-      typeof email !== "string" ||
-      typeof password !== "string"
+      [firstName, lastName, country, email, password, confirmPassword]
+        .some(value => typeof value !== "string")
     ) {
       return res.status(400).json({
-        error: "Enter your name, email and password."
+        error: "Complete all registration fields."
       });
     }
 
-    const cleanName = fullName.trim();
+    const cleanFirstName = firstName.trim();
+    const cleanLastName = lastName.trim();
+    const cleanCountry = country.trim();
+    const cleanName = `${cleanFirstName} ${cleanLastName}`;
     const cleanEmail = email.trim().toLowerCase();
 
+    const allowedCountries = new Set([
+      "United States",
+      "Canada",
+      "Ethiopia",
+      "United Kingdom",
+      "Germany",
+      "France",
+      "Italy",
+      "Netherlands",
+      "Sweden",
+      "Spain",
+      "Switzerland",
+      "United Arab Emirates",
+      "Saudi Arabia",
+      "Qatar",
+      "Kuwait",
+      "Israel",
+      "Jordan",
+      "Other"
+    ]);
+
     if (
-      cleanName.length < 2 ||
+      cleanFirstName.length < 1 ||
+      cleanFirstName.length > 60 ||
+      cleanLastName.length < 1 ||
+      cleanLastName.length > 60 ||
       cleanName.length > 120 ||
+      !allowedCountries.has(cleanCountry) ||
       cleanEmail.length > 254 ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) ||
       password.length < 8 ||
       Buffer.byteLength(password, "utf8") > 72
     ) {
       return res.status(400).json({
-        error: "Check your name, email and password requirements."
+        error: "Check your name, country, email and password requirements."
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        error: "Passwords do not match."
       });
     }
 
@@ -554,11 +594,18 @@ app.post("/api/register", async (req, res, next) => {
 
     const result = await pool.query(
       `INSERT INTO app_users
-         (full_name, email, password_hash, role)
-       VALUES ($1, $2, $3, 'user')
+        (full_name, first_name, last_name, country, email, password_hash, role)
+       VALUES ($1, $2, $3, $4, $5, $6, 'user')
        ON CONFLICT (email) DO NOTHING
        RETURNING id, full_name, email, role`,
-      [cleanName, cleanEmail, passwordHash]
+      [
+        cleanName,
+        cleanFirstName,
+        cleanLastName,
+        cleanCountry,
+        cleanEmail,
+        passwordHash
+      ]
     );
 
     if (result.rowCount === 0) {
@@ -581,6 +628,7 @@ app.post("/api/register", async (req, res, next) => {
     next(error);
   }
 });
+
 
 /* Log in a customer or administrator */
 app.post("/api/login", async (req, res, next) => {
