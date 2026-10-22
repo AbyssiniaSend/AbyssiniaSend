@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,10 +46,14 @@
       margin-bottom: 22px;
     }
 
-    .brand h1 {
-      margin: 0 0 8px;
-      color: var(--gold);
-      font-size: 30px;
+    /* Logo display only */
+    .brand-logo {
+      display: block;
+      width: 190px;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto 12px;
+      object-fit: contain;
     }
 
     .brand p {
@@ -250,7 +254,11 @@
 <body>
   <main class="container">
     <header class="brand">
-      <h1>AbyssiniaSend</h1>
+      <img
+        src="/AbyssiniaSend%20Global%20Transfer%20Logo.png"
+        alt="AbyssiniaSend Global Transfer Logo"
+        class="brand-logo"
+      >
       <p>Secure access to your account</p>
     </header>
 
@@ -578,4 +586,4 @@
   </script>
 </body>
 </html>
-
+```
