@@ -214,7 +214,6 @@
 
 <body>
   <main class="card">
-
     <img
       class="logo-image"
       src="/logo.png"
@@ -234,7 +233,7 @@
       </button>
     </div>
 
-    <form id="authForm">
+    <form id="authForm" novalidate>
       <div id="nameGroup" hidden>
         <label for="firstName">First Name</label>
         <input
@@ -256,53 +255,39 @@
 
         <label for="country">Country</label>
         <select id="country" name="country">
-          <option value="">Select your country</option>
+          <option value="">🌍 Select your country</option>
 
-<label for="country">Country</label>
-<select id="country" name="country" required>
-  <option value="">🌍 Select your country</option>
+          <optgroup label="🌎 North America">
+            <option value="United States">🇺🇸 United States</option>
+            <option value="Canada">🇨🇦 Canada</option>
+          </optgroup>
 
-  <optgroup label="🌎 North America">
-    <option value="United States">🇺🇸 United States</option>
-    <option value="Canada">🇨🇦 Canada</option>
-  </optgroup>
+          <optgroup label="🌍 Africa">
+            <option value="Ethiopia">🇪🇹 Ethiopia</option>
+          </optgroup>
 
-  <optgroup label="🌍 Africa">
-    <option value="Ethiopia">🇪🇹 Ethiopia</option>
-  </optgroup>
+          <optgroup label="🌍 Europe">
+            <option value="United Kingdom">🇬🇧 United Kingdom</option>
+            <option value="Germany">🇩🇪 Germany</option>
+            <option value="France">🇫🇷 France</option>
+            <option value="Italy">🇮🇹 Italy</option>
+            <option value="Netherlands">🇳🇱 Netherlands</option>
+            <option value="Sweden">🇸🇪 Sweden</option>
+            <option value="Spain">🇪🇸 Spain</option>
+            <option value="Switzerland">🇨🇭 Switzerland</option>
+          </optgroup>
 
-  <optgroup label="🌍 Europe">
-    <option value="United Kingdom">🇬🇧 United Kingdom</option>
-    <option value="Germany">🇩🇪 Germany</option>
-    <option value="France">🇫🇷 France</option>
-    <option value="Italy">🇮🇹 Italy</option>
-    <option value="Netherlands">🇳🇱 Netherlands</option>
-    <option value="Sweden">🇸🇪 Sweden</option>
-    <option value="Spain">🇪🇸 Spain</option>
-    <option value="Switzerland">🇨🇭 Switzerland</option>
-  </optgroup>
+          <optgroup label="🌏 Middle East">
+            <option value="United Arab Emirates">🇦🇪 United Arab Emirates</option>
+            <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+            <option value="Qatar">🇶🇦 Qatar</option>
+            <option value="Kuwait">🇰🇼 Kuwait</option>
+            <option value="Israel">🇮🇱 Israel</option>
+            <option value="Jordan">🇯🇴 Jordan</option>
+          </optgroup>
 
-  <optgroup label="🌏 Middle East">
-    <option value="United Arab Emirates">🇦🇪 United Arab Emirates</option>
-    <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
-    <option value="Qatar">🇶🇦 Qatar</option>
-    <option value="Kuwait">🇰🇼 Kuwait</option>
-    <option value="Israel">🇮🇱 Israel</option>
-    <option value="Jordan">🇯🇴 Jordan</option>
-  </optgroup>
-
-  <option value="Other">🌐 Other</option>
-</select>
-
-        <label for="confirmPassword">Confirm Password</label>
-        <input
-          id="confirmPassword"
-          name="confirmPassword"
-          type="password"
-          autocomplete="new-password"
-          minlength="8"
-          maxlength="128"
-        >
+          <option value="Other">🌐 Other</option>
+        </select>
       </div>
 
       <label for="email">Email Address</label>
@@ -323,8 +308,20 @@
         autocomplete="current-password"
         required
         minlength="8"
-        maxlength="128"
+        maxlength="72"
       >
+
+      <div id="confirmGroup" hidden>
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          maxlength="72"
+        >
+      </div>
 
       <button class="submit" id="submitButton" type="submit">
         Login Securely
@@ -361,7 +358,6 @@
     <div class="note">
       Secure access · Never share your password
     </div>
-
   </main>
 
   <script>
@@ -369,12 +365,15 @@
     const loginTab = document.getElementById("loginTab");
     const signupTab = document.getElementById("signupTab");
     const nameGroup = document.getElementById("nameGroup");
+    const confirmGroup = document.getElementById("confirmGroup");
+
     const firstName = document.getElementById("firstName");
     const lastName = document.getElementById("lastName");
     const country = document.getElementById("country");
     const email = document.getElementById("email");
     const password = document.getElementById("password");
-     const confirmPassword = document.getElementById("confirmPassword");
+    const confirmPassword = document.getElementById("confirmPassword");
+
     const submitButton = document.getElementById("submitButton");
     const message = document.getElementById("message");
 
@@ -382,10 +381,10 @@
 
     function setMode(nextMode) {
       mode = nextMode;
-
       const signingUp = mode === "signup";
 
       nameGroup.hidden = !signingUp;
+      confirmGroup.hidden = !signingUp;
 
       firstName.required = signingUp;
       lastName.required = signingUp;
@@ -411,8 +410,11 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-
       message.textContent = "";
+
+      if (!form.reportValidity()) {
+        return;
+      }
 
       if (
         mode === "signup" &&
