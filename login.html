@@ -258,37 +258,41 @@
         <select id="country" name="country">
           <option value="">Select your country</option>
 
-          <optgroup label="North America">
-            <option value="United States">United States</option>
-            <option value="Canada">Canada</option>
-          </optgroup>
+<label for="country">Country</label>
+<select id="country" name="country" required>
+  <option value="">🌍 Select your country</option>
 
-          <optgroup label="Africa">
-            <option value="Ethiopia">Ethiopia</option>
-          </optgroup>
+  <optgroup label="🌎 North America">
+    <option value="United States">🇺🇸 United States</option>
+    <option value="Canada">🇨🇦 Canada</option>
+  </optgroup>
 
-          <optgroup label="Europe">
-            <option value="United Kingdom">United Kingdom</option>
-            <option value="Germany">Germany</option>
-            <option value="France">France</option>
-            <option value="Italy">Italy</option>
-            <option value="Netherlands">Netherlands</option>
-            <option value="Sweden">Sweden</option>
-            <option value="Spain">Spain</option>
-            <option value="Switzerland">Switzerland</option>
-          </optgroup>
+  <optgroup label="🌍 Africa">
+    <option value="Ethiopia">🇪🇹 Ethiopia</option>
+  </optgroup>
 
-          <optgroup label="Middle East">
-            <option value="United Arab Emirates">United Arab Emirates</option>
-            <option value="Saudi Arabia">Saudi Arabia</option>
-            <option value="Qatar">Qatar</option>
-            <option value="Kuwait">Kuwait</option>
-            <option value="Israel">Israel</option>
-            <option value="Jordan">Jordan</option>
-          </optgroup>
+  <optgroup label="🌍 Europe">
+    <option value="United Kingdom">🇬🇧 United Kingdom</option>
+    <option value="Germany">🇩🇪 Germany</option>
+    <option value="France">🇫🇷 France</option>
+    <option value="Italy">🇮🇹 Italy</option>
+    <option value="Netherlands">🇳🇱 Netherlands</option>
+    <option value="Sweden">🇸🇪 Sweden</option>
+    <option value="Spain">🇪🇸 Spain</option>
+    <option value="Switzerland">🇨🇭 Switzerland</option>
+  </optgroup>
 
-          <option value="Other">Other</option>
-        </select>
+  <optgroup label="🌏 Middle East">
+    <option value="United Arab Emirates">🇦🇪 United Arab Emirates</option>
+    <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+    <option value="Qatar">🇶🇦 Qatar</option>
+    <option value="Kuwait">🇰🇼 Kuwait</option>
+    <option value="Israel">🇮🇱 Israel</option>
+    <option value="Jordan">🇯🇴 Jordan</option>
+  </optgroup>
+
+  <option value="Other">🌐 Other</option>
+</select>
 
         <label for="confirmPassword">Confirm Password</label>
         <input
