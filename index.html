@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +10,7 @@
       --navy: #071426;
       --navy-light: #10243d;
       --navy-card: #132a47;
-      --gold: #e8b85b;
+      --gold: #f5c451;
       --white: #ffffff;
       --muted: #b9c5d5;
       --green: #30c48d;
@@ -88,12 +87,13 @@
       padding: 7px 9px;
       border-radius: 6px;
       font-size: 14px;
+      transition: color 0.2s, background 0.2s;
     }
 
     .nav-links a:hover,
     .nav-links a.active {
       color: var(--gold);
-      background: rgba(232, 184, 91, 0.1);
+      background: rgba(245, 196, 81, 0.12);
     }
 
     .menu-toggle {
@@ -115,24 +115,32 @@
       max-width: 100%;
     }
 
+    input:focus, select:focus {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
     .btn {
       display: inline-block;
       background: var(--gold);
       color: #101827;
       font-weight: bold;
       padding: 11px 17px;
-      border: none;
+      border: 1px solid var(--gold);
       border-radius: 9px;
       cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
     }
 
     .btn:hover {
       opacity: 0.88;
+      transform: translateY(-1px);
     }
 
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
     }
 
     .btn-sm {
@@ -141,9 +149,24 @@
       border-radius: 6px;
     }
 
-    .btn-green { background: var(--green); color: #071426; }
-    .btn-red { background: var(--red); color: white; }
-    .btn-blue { background: var(--blue); color: white; }
+    /* Navy Blue & Gold primary buttons */
+    .btn-green {
+      background: var(--gold);
+      color: var(--navy);
+      border-color: var(--gold);
+    }
+
+    .btn-red {
+      background: var(--red);
+      color: white;
+      border-color: var(--red);
+    }
+
+    .btn-blue {
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue);
+    }
 
     #logoutBtn {
       background: #dc2626;
@@ -179,9 +202,10 @@
     }
 
     .tag {
-      color: var(--green);
+      color: var(--gold);
       font-weight: bold;
       margin-bottom: 15px;
+      letter-spacing: 1px;
     }
 
     h1 {
@@ -221,6 +245,7 @@
       font-weight: bold;
       margin: 12px 0;
       overflow-wrap: anywhere;
+      color: var(--gold);
     }
 
     .note {
@@ -241,6 +266,7 @@
       text-align: center;
       font-size: 29px;
       margin-bottom: 10px;
+      color: var(--gold);
     }
 
     .section-subtitle {
@@ -276,6 +302,7 @@
     .menu-card:hover {
       transform: translateY(-3px);
       border-color: var(--gold);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
     }
 
     .menu-card h3 {
@@ -395,12 +422,13 @@
       margin-top: 18px;
       padding: 16px;
       background: #071426;
+      border: 1px solid #2b4058;
       border-radius: 10px;
     }
 
     .result-number {
       font-size: 24px;
-      color: var(--green);
+      color: var(--gold);
       font-weight: bold;
       overflow-wrap: anywhere;
     }
@@ -596,7 +624,7 @@
     <div id="page-dashboard" class="page-view">
       <section>
         <div class="section-inner">
-          <h2 class="section-title">Transfer Ledger & Management</h2>
+          <h2 class="section-title">Transfer Ledger &amp; Management</h2>
           <p class="section-subtitle">
             These are local demo records, not real financial transactions.
           </p>
