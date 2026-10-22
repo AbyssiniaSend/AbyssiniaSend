@@ -195,7 +195,13 @@ async function initializeDatabase() {
     ALTER TABLE app_users
     ALTER COLUMN password_hash DROP NOT NULL
   `);
-
+  // Add registration fields without deleting existing users
+  await pool.query(`
+    ALTER TABLE app_users
+      ADD COLUMN IF NOT EXISTS first_name VARCHAR(60),
+      ADD COLUMN IF NOT EXISTS last_name VARCHAR(60),
+      ADD COLUMN IF NOT EXISTS country VARCHAR(100)
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS oauth_accounts (
       id BIGSERIAL PRIMARY KEY,
