@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AbyssiniaSend | Admin Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #071426;
+      color: #f4f7fb;
+    }
+
+    header {
+      padding: 22px;
+      background: #10243d;
+      border-bottom: 1px solid #29415f;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    h1 { margin: 0; font-size: 23px; }
+    main { max-width: 1100px; margin: 30px auto; padding: 0 16px; }
+
+    .card {
+      background: #10243d;
+      border: 1px solid #29415f;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .muted { color: #b7c6d9; }
+    .status { margin-top: 12px; color: #ffd166; }
+
+    button {
+      padding: 10px 15px;
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .refresh { background: #dce9f8; color: #071426; }
+    .logout { background: #c83d4d; color: white; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 520px; }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #29415f;
+      text-align: left;
+    }
+    th { color: #8ec5ff; }
+    .error { color: #ff929c; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>AbyssiniaSend Admin</h1>
+      <p class="muted">Administration Dashboard</p>
+    </div>
+    <button class="logout" id="logoutBtn">Logout</button>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Admin Account</h2>
+      <p id="adminInfo" class="muted">Checking admin access...</p>
+      <p id="status" class="status" role="status">Please wait...</p>
+    </section>
+
+    <section class="card">
+      <h2>Registered Users</h2>
+      <p class="muted">Read-only user list. No accounts are changed here.</p>
+      <button class="refresh" id="refreshBtn">Refresh Users</button>
+      <p id="usersStatus" class="status" role="status"></p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable">
+            <tr><td colspan="3">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const adminInfo = document.getElementById("adminInfo");
+    const usersStatus = document.getElementById("usersStatus");
+    const usersTable = document.getElementById("usersTable");
+
+    async function checkAdmin() {
+      try {
+        const response = await fetch("/api/admin/check", {
+          credentials: "same-origin"
+        });
+
+        if (response.status === 401) {
+          window.location.replace("/login");
+          return false;
+        }
+
+        if (response.status === 403) {
+          statusEl.textContent = "Access denied: Admin permission required.";
+          adminInfo.textContent = "This account is not an administrator.";
+          usersTable.innerHTML = "";
+          return false;
+        }
+
+        if (!response.ok) {
+          throw new Error("Could not verify admin access.");
+        }
+
+        const data = await response.json();
+        adminInfo.textContent =
+          "Signed in as " + (data.user?.email || "Admin");
+        statusEl.textContent = "Admin access verified.";
+        return true;
+      } catch (error) {
+        statusEl.textContent =
+          "Could not connect to the server. Please try again.";
+        return false;
+      }
+    }
+
+    async function loadUsers() {
+      usersStatus.textContent = "Loading users...";
+      usersTable.innerHTML = "";
+
+      try {
+        const response = await fetch("/api/admin/users", {
+          credentials: "same-origin"
+        });
+
+        if (response.status === 401) {
+          window.location.replace("/login");
+          return;
+        }
+
+        if (response.status === 403) {
+          usersStatus.textContent = "Access denied.";
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to load users.");
+        }
+
+        const data = await response.json();
+        const users = Array.isArray(data) ? data : data.users;
+
+        if (!Array.isArray(users)) {
+          throw new Error("Unexpected server response.");
+        }
+
+        if (users.length === 0) {
+          usersTable.innerHTML =
+            '<tr><td colspan="3">No users found.</td></tr>';
+          usersStatus.textContent = "";
+          return;
+        }
+
+        users.forEach(function(user) {
+          const row = document.createElement("tr");
+
+          [user.fullName || user.name || "—",
+           user.email || "—",
+           user.role || "user"].forEach(function(value) {
+            const cell = document.createElement("td");
+            cell.textContent = String(value);
+            row.appendChild(cell);
+          });
+
+          usersTable.appendChild(row);
+        });
+
+        usersStatus.textContent = "Users loaded successfully.";
+      } catch (error) {
+        usersStatus.textContent =
+          "Could not load users. Check the backend response.";
+      }
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", async function() {
+      if (await checkAdmin()) {
+        await loadUsers();
+      }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", async function() {
+      try {
+        const response = await fetch("/api/logout", {
+          method: "POST",
+          credentials: "same-origin"
+        });
+
+        if (response.ok) {
+          window.location.replace("/login");
+        } else {
+          statusEl.textContent = "Logout failed. Please try again.";
+        }
+      } catch (error) {
+        statusEl.textContent = "Could not connect to the server.";
+      }
+    });
+
+    (async function init() {
+      if (await checkAdmin()) {
+        await loadUsers();
+      }
+    })();
+  </script>
+</body>
+</html>
