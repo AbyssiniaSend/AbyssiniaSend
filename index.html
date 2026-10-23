@@ -665,60 +665,7 @@
       </section>
     </div>
 
-    <!-- DEPOSIT REQUEST SECTION -->
-    <section class="section" id="deposit-section">
-      <div class="section-header">
-        <h2 class="section-title">Deposit Request</h2>
-        <p class="section-subtitle">
-          Submit a  deposit request for Admin review.
-        </p>
-      </div>
-
-      <div class="card">
-        <form id="depositRequestForm">
-          <div class="form-group">
-            <label for="depositAmount">Deposit Amount</label>
-            <input
-              type="number"
-              id="depositAmount"
-              min="1"
-              step="0.01"
-              placeholder="Enter amount"
-              required
-            >
-          </div>
-
-          <div class="form-group">
-            <label for="depositCurrency">Currency</label>
-            <select id="depositCurrency" required>
-              <option value="USD">USD — US Dollar</option>
-              <option value="ETB">ETB — Ethiopian Birr</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="depositNote">Note (Optional)</label>
-            <input
-              type="text"
-              id="depositNote"
-              maxlength="200"
-              placeholder="Enter a note or reference"
-            >
-          </div>
-
-          <button type="submit" class="btn">
-            Submit Deposit Request
-          </button>
-
-        <p class="note">
-  ፈጣን፣ ታማኝ እና ደህንነቱ የተጠበቀ — ከእኛ ጋር አብረው ይስሩ! <br>
-  Fast, reliable, and secure — Work with us!
-</p>
-
-          <div id="depositMessage" class="message" role="status"></div>
-        </form>
-      </div>
-    </section>
+   
 
     <!-- APP MENU -->
     <div id="page-menu" class="page-view">
@@ -771,7 +718,68 @@
         </div>
       </div>
 
-      <div class="dashboard-grid">
+      
+<!-- BALANCE AND ACTION BUTTONS -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="stat-label">Available Balance (Demo)</div>
+  <div class="stat-value" id="availableBalance">$0.00</div>
+  <p style="font-size:12px; color:var(--muted); margin-top:8px;">
+    Demo balance only. No real funds are held.
+  </p>
+
+  <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:20px;">
+    <button class="btn btn-green" type="button"
+      onclick="showDashboardPanel('deposit')">
+      + Deposit
+    </button>
+
+    <button class="btn btn-blue" type="button"
+      onclick="showDashboardPanel('transfer')">
+      Transfer / Send Money
+    </button>
+  </div>
+</div>
+
+<!-- DEPOSIT PANEL -->
+<div id="depositPanel" class="card" style="display:none; margin-bottom:24px;">
+  <h3 style="color:var(--gold); margin-bottom:20px;">Deposit Request</h3>
+
+  <form id="depositRequestForm">
+    <div class="form-group">
+      <label for="depositAmount">Amount</label>
+      <input type="number" id="depositAmount"
+        min="1" step="0.01" placeholder="Enter amount" required>
+    </div>
+
+    <div class="form-group">
+      <label for="depositCurrency">Currency</label>
+      <select id="depositCurrency" required>
+        <option value="USD">USD — US Dollar</option>
+        <option value="ETB">ETB — Ethiopian Birr</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="depositNote">Payment Reference / Note (Optional)</label>
+      <input type="text" id="depositNote" maxlength="200"
+        placeholder="Enter payment reference">
+    </div>
+
+    <button class="btn btn-green" type="submit">
+      Submit Deposit Request
+    </button>
+
+    <button class="btn btn-outline" type="button"
+      onclick="showDashboardPanel('transfer')">
+      Back to Transfer
+    </button>
+
+    <div id="depositMessage" class="message" role="status"></div>
+  </form>
+</div>
+
+<div class="dashboard-grid" id="transferPanel">
+
        <!-- FORM CONTAINER -->
 <div class="card">
   <h3 id="formTitle" style="color:var(--gold); margin-bottom:20px; font-size:18px;">
@@ -1037,11 +1045,13 @@
 </footer>
 
   <script>
+    
     // NAVIGATION LOGIC
     function switchPage(pageId) {
       document.querySelectorAll(".page-view").forEach(page => {
         page.classList.remove("active-page");
       });
+
       document.querySelectorAll(".nav-links a").forEach(link => {
         link.classList.remove("active");
       });
@@ -1053,6 +1063,34 @@
       if (targetNav) targetNav.classList.add("active");
 
       document.getElementById("navLinksContainer").classList.remove("show");
+
+      if (pageId === "dashboard") {
+        showDashboardPanel("transfer");
+      }
+
+      window.scrollTo(0, 0);
+    }
+
+    // SHOW DEPOSIT OR TRANSFER PANEL
+    function showDashboardPanel(panel) {
+      const depositPanel = document.getElementById("depositPanel");
+      const transferPanel = document.getElementById("transferPanel");
+
+      if (!depositPanel || !transferPanel) {
+        console.error("Dashboard panels were not found.");
+        return;
+      }
+
+      depositPanel.style.display =
+        panel === "deposit" ? "block" : "none";
+
+      transferPanel.style.display =
+        panel === "transfer" ? "grid" : "none";
+
+      if (panel === "deposit") {
+        document.getElementById("depositAmount").focus();
+      }
+
       window.scrollTo(0, 0);
     }
 
