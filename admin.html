@@ -77,7 +77,35 @@
       <p id="adminInfo" class="muted">Checking admin access...</p>
       <p id="status" class="status" role="status">Please wait...</p>
     </section>
+<section class="card">
+  <h2>Transfer Requests</h2>
+  <p class="muted">
+    Review each request and choose Confirm or Reject.
+  </p>
 
+  <p id="transferStatus" class="status" role="status">
+    Loading transfer requests...
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Request ID</th>
+          <th>User</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="transferTable">
+        <tr>
+          <td colspan="5">No requests loaded yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
     <section class="card">
       <h2>Registered Users</h2>
       <p class="muted">Read-only user list. No accounts are changed here.</p>
