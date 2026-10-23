@@ -222,7 +222,18 @@ async function initializeDatabase() {
       UNIQUE (provider, user_id)
     )
   `);
-
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS transfer_requests (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES app_users(id),
+      amount NUMERIC(18, 2) NOT NULL CHECK (amount > 0),
+      currency VARCHAR(3) NOT NULL DEFAULT 'ETB',
+      status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'confirmed', 'rejected')),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      reviewed_at TIMESTAMPTZ
+    )
+  `);
   const adminName = (
     process.env.ADMIN_NAME || "AbyssiniaSend Admin"
   ).trim();
@@ -778,7 +789,80 @@ app.get("/api/admin/users", requireAdmin, async (req, res, next) => {
     next(error);
   }
 });
+/* List transfer requests: administrator only */
+app.get("/api/admin/transfers", requireAdmin, async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         tr.id,
+         tr.user_id,
+         u.full_name,
+         u.email,
+         tr.amount,
+         tr.currency,
+         tr.status,
+         tr.created_at,
+         tr.reviewed_at
+       FROM transfer_requests tr
+       JOIN app_users u ON u.id = tr.user_id
+       ORDER BY tr.created_at DESC
+       LIMIT 500`
+    );
 
+    return res.json({
+      transfers: result.rows
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/* Confirm or reject a transfer request: administrator only */
+app.patch(
+  "/api/admin/transfers/:id/status",
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body || {};
+
+      if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({
+          error: "Invalid transfer request ID."
+        });
+      }
+
+      if (!["confirmed", "rejected"].includes(status)) {
+        return res.status(400).json({
+          error: "Status must be confirmed or rejected."
+        });
+      }
+
+      const result = await pool.query(
+        `UPDATE transfer_requests
+         SET status = $1,
+             reviewed_at = NOW()
+         WHERE id = $2
+           AND status = 'pending'
+         RETURNING id, amount, currency, status, reviewed_at`,
+        [status, id]
+      );
+
+      if (result.rowCount === 0) {
+        return res.status(409).json({
+          error: "Request not found or already reviewed."
+        });
+      }
+
+      return res.json({
+        message: `Request ${status} successfully.`,
+        transfer: result.rows[0]
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 /* Unknown API routes return JSON */
 app.use("/api", (req, res) => {
   return res.status(404).json({
