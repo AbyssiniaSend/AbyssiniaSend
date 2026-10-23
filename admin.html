@@ -354,6 +354,111 @@ const depositTable = document.getElementById("depositTable");
         "Could not load transfer requests. Check Render logs.";
     }
   }
+  
+async function loadDeposits() {
+  depositStatus.textContent = "Loading deposit requests...";
+  depositTable.replaceChildren();
+
+  try {
+    const response = await fetch("/api/admin/deposits", {
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+
+    if (response.status === 401) {
+      window.location.replace("/login");
+      return;
+    }
+
+    if (response.status === 403) {
+      depositStatus.textContent =
+        "Access denied: Admin permission required.";
+      return;
+    }
+
+    const data = await response.json().catch(function() {
+      return {};
+    });
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to load deposit requests.");
+    }
+
+    const deposits = data.deposits;
+
+    if (!Array.isArray(deposits)) {
+      throw new Error("Unexpected deposit response.");
+    }
+
+    if (deposits.length === 0) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 6;
+      cell.textContent = "No deposit requests found.";
+      row.appendChild(cell);
+      depositTable.appendChild(row);
+      depositStatus.textContent = "No deposit requests to review.";
+      return;
+    }
+
+    deposits.forEach(function(deposit) {
+      const row = document.createElement("tr");
+
+      const userName = deposit.full_name || "Unknown";
+      const email = deposit.email || "—";
+      const amount = String(deposit.amount) + " " +
+        (deposit.currency || "");
+
+      [
+        deposit.id,
+        userName + " (" + email + ")",
+        amount,
+        deposit.note || "—",
+        deposit.status || "pending"
+      ].forEach(function(value) {
+        const cell = document.createElement("td");
+        cell.textContent = String(value);
+        row.appendChild(cell);
+      });
+
+      const actionCell = document.createElement("td");
+
+      if (deposit.status === "pending") {
+        const confirmBtn = document.createElement("button");
+        confirmBtn.textContent = "Confirm";
+        confirmBtn.style.background = "#238636";
+        confirmBtn.style.color = "#ffffff";
+        confirmBtn.style.marginRight = "6px";
+
+        confirmBtn.addEventListener("click", function() {
+          updateDepositStatus(deposit.id, "confirmed");
+        });
+
+        const rejectBtn = document.createElement("button");
+        rejectBtn.textContent = "Reject";
+        rejectBtn.style.background = "#c83d4d";
+        rejectBtn.style.color = "#ffffff";
+
+        rejectBtn.addEventListener("click", function() {
+          updateDepositStatus(deposit.id, "rejected");
+        });
+
+        actionCell.append(confirmBtn, rejectBtn);
+      } else {
+        actionCell.textContent = "Already reviewed";
+      }
+
+      row.appendChild(actionCell);
+      depositTable.appendChild(row);
+    });
+
+    depositStatus.textContent = "Deposit requests loaded successfully.";
+  } catch (error) {
+    depositStatus.textContent =
+      error.message || "Could not load deposit requests.";
+  }
+}
+
 
   async function updateTransferStatus(id, newStatus) {
     const actionName = newStatus === "confirmed" ? "Confirm" : "Reject";
@@ -402,6 +507,54 @@ const depositTable = document.getElementById("depositTable");
     }
   }
 
+async function updateDepositStatus(id, newStatus) {
+  const actionName = newStatus === "confirmed" ? "Confirm" : "Reject";
+
+  if (!window.confirm(
+    actionName + " deposit request #" + id +
+    "? This changes the request status only, not a real money balance."
+  )) {
+    return;
+  }
+
+  depositStatus.textContent = "Updating deposit request #" + id + "...";
+
+  try {
+    const response = await fetch(
+      "/api/admin/deposits/" + encodeURIComponent(id) + "/status",
+      {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+      }
+    );
+
+    const data = await response.json().catch(function() {
+      return {};
+    });
+
+    if (response.status === 401) {
+      window.location.replace("/login");
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || "Could not update deposit request.");
+    }
+
+    depositStatus.textContent =
+      "Deposit request #" + id + " " + newStatus + " successfully.";
+
+    await loadDeposits();
+  } catch (error) {
+    depositStatus.textContent =
+      error.message || "Could not update deposit request. Try again.";
+  }
+}
+
   document.getElementById("refreshBtn").addEventListener(
     "click",
     async function() {
@@ -431,11 +584,17 @@ const depositTable = document.getElementById("depositTable");
     }
   );
 
-  (async function init() {
-    if (await checkAdmin()) {
-      await Promise.all([loadUsers(), loadTransfers()]);
-    }
-  })();
+  
+(async function init() {
+  if (await checkAdmin()) {
+    await Promise.all([
+      loadUsers(),
+      loadTransfers(),
+      loadDeposits()
+    ]);
+  }
+})();
+
 </script>
 
 </body>
