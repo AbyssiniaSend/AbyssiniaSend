@@ -927,6 +927,83 @@ app.patch(
     }
   }
 );
+
+/* List deposit requests: administrator only */
+app.get("/api/admin/deposits", requireAdmin, async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         dr.id,
+         dr.user_id,
+         u.full_name,
+         u.email,
+         dr.amount,
+         dr.currency,
+         dr.note,
+         dr.status,
+         dr.created_at,
+         dr.reviewed_at
+       FROM deposit_requests dr
+       JOIN app_users u ON u.id = dr.user_id
+       ORDER BY dr.created_at DESC
+       LIMIT 500`
+    );
+
+    return res.json({
+      deposits: result.rows
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/* Confirm or reject a deposit request: administrator only */
+app.patch(
+  "/api/admin/deposits/:id/status",
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body || {};
+
+      if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({
+          error: "Invalid deposit request ID."
+        });
+      }
+
+      if (!["confirmed", "rejected"].includes(status)) {
+        return res.status(400).json({
+          error: "Status must be confirmed or rejected."
+        });
+      }
+
+      const result = await pool.query(
+        `UPDATE deposit_requests
+         SET status = $1,
+             reviewed_at = NOW()
+         WHERE id = $2
+           AND status = 'pending'
+         RETURNING id, amount, currency, status, reviewed_at`,
+        [status, id]
+      );
+
+      if (result.rowCount === 0) {
+        return res.status(409).json({
+          error: "Request not found or already reviewed."
+        });
+      }
+
+      return res.json({
+        message: `Deposit request ${status} successfully.`,
+        deposit: result.rows[0]
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 /* Unknown API routes return JSON */
 app.use("/api", (req, res) => {
   return res.status(404).json({
