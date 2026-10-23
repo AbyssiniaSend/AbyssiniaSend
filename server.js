@@ -10,7 +10,7 @@ const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const { rateLimit } = require("express-rate-limit");
 const requiredEnv = [
   "DATABASE_URL",
   "SESSION_SECRET",
