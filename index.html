@@ -212,22 +212,6 @@
       color: white;
     }
 
-    /* NOTICE BANNER */
-    .demo-notice {
-      max-width: 1228px;
-      margin: 20px auto 0;
-      padding: 12px 20px;
-      width: calc(100% - 48px);
-      border: 1px solid rgba(245, 196, 81, 0.3);
-      background: rgba(245, 196, 81, 0.05);
-      color: var(--gold);
-      border-radius: 10px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
     /* PAGE VIEWS */
     .page-view {
       display: none;
@@ -632,8 +616,9 @@
   <!-- HEADER -->
   <header>
     <nav class="navbar">
-      <a class="logo" href="#" onclick="switchPage('home'); return false;">
-        <span>AbyssiniaSend</span>
+      <a class="logo" href="#" onclick="switchPage('home'); return false;" aria-label="AbyssiniaSend Home">
+        <img src="/logo.png" alt="AbyssiniaSend Logo" style="height:44px; width:auto; max-width:220px; object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span style="display:none;">AbyssiniaSend</span>
       </a>
 
       <button class="menu-toggle" id="menuToggleBtn" type="button" aria-label="Toggle Navigation">☰</button>
@@ -655,12 +640,6 @@
       </div>
     </nav>
   </header>
-
-  <!-- NOTICE BANNER -->
-  <div class="demo-notice">
-    <span>⚠️</span>
-    <div><strong>Educational Portfolio Demo:</strong> This interface simulates secure transfers and real-time exchange rates. No actual funds are moved.</div>
-  </div>
 
   <main>
     <!-- HOME PAGE -->
@@ -880,7 +859,7 @@
   </main>
 
   <footer>
-    <p>© 2026 AbyssiniaSend. Professional Remittance Portfolio Demonstration.</p>
+    <p>© 2026 AbyssiniaSend. Transfer activity and displayed rates are for simulation and reference only; no real funds are moved.</p>
   </footer>
 
   <script>
