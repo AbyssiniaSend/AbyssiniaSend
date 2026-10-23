@@ -1094,6 +1094,65 @@
       window.scrollTo(0, 0);
     }
 
+/* SUBMIT DEPOSIT REQUEST TO THE SERVER */
+const depositForm = document.getElementById("depositRequestForm");
+const depositMessage = document.getElementById("depositMessage");
+
+if (depositForm && depositMessage) {
+  depositForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const amount = Number(
+      document.getElementById("depositAmount").value
+    );
+
+    const currency =
+      document.getElementById("depositCurrency").value;
+
+    const note =
+      document.getElementById("depositNote").value.trim();
+
+    depositMessage.className = "message";
+    depositMessage.textContent = "Submitting request...";
+
+    try {
+      const response = await fetch("/api/deposits", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          amount,
+          currency,
+          note
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || "Could not submit deposit request."
+        );
+      }
+
+      depositMessage.textContent =
+        result.message ||
+        "Deposit request submitted for admin review.";
+
+      depositMessage.className = "message show success";
+      depositForm.reset();
+
+    } catch (error) {
+      depositMessage.textContent =
+        error.message || "Network error. Please try again.";
+
+      depositMessage.className = "message show error";
+    }
+  });
+}
+
     document.getElementById("menuToggleBtn").addEventListener("click", () => {
       document.getElementById("navLinksContainer").classList.toggle("show");
     });
