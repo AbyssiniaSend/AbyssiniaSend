@@ -789,6 +789,54 @@ app.get("/api/admin/users", requireAdmin, async (req, res, next) => {
     next(error);
   }
 });
+
+/* Submit a deposit request: signed-in users only */
+app.post("/api/deposits", requireLogin, async (req, res, next) => {
+  try {
+    const amount = Number(req.body?.amount);
+    const currency = req.body?.currency;
+    const note =
+      typeof req.body?.note === "string"
+        ? req.body.note.trim()
+        : "";
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({
+        error: "Enter a valid deposit amount."
+      });
+    }
+
+    if (!["USD", "ETB"].includes(currency)) {
+      return res.status(400).json({
+        error: "Currency must be USD or ETB."
+      });
+    }
+
+    if (note.length > 200) {
+      return res.status(400).json({
+        error: "Note must be 200 characters or fewer."
+      });
+    }
+
+    const userId = req.session.user.id;
+
+    const result = await pool.query(
+      `INSERT INTO deposit_requests
+         (user_id, amount, currency, note, status)
+       VALUES ($1, $2, $3, $4, 'pending')
+       RETURNING id, amount, currency, note, status, created_at`,
+      [userId, amount, currency, note || null]
+    );
+
+    return res.status(201).json({
+      message: "Deposit request submitted for admin review.",
+      deposit: result.rows[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 /* List transfer requests: administrator only */
 app.get("/api/admin/transfers", requireAdmin, async (req, res, next) => {
   try {
