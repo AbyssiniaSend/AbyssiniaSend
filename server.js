@@ -7,10 +7,18 @@ const PgSession = require("connect-pg-simple")(session);
 const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
 const path = require("path");
-
+const { rateLimit } = require("express-rate-limit");
 const app = express();
 const PORT = process.env.PORT || 3000;
-const { rateLimit } = require("express-rate-limit");
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    error: "Too many login attempts. Please try again in 15 minutes."
+  }
+});
 const requiredEnv = [
   "DATABASE_URL",
   "SESSION_SECRET",
@@ -637,8 +645,9 @@ app.post("/api/register", async (req, res, next) => {
 });
 
 
+
 /* Log in a customer or administrator */
-app.post("/api/login", async (req, res, next) => {
+app.post("/api/login", loginLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
 
