@@ -234,6 +234,22 @@ async function initializeDatabase() {
       reviewed_at TIMESTAMPTZ
     )
   `);
+  
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS deposit_requests (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES app_users(id),
+      amount NUMERIC(18, 2) NOT NULL CHECK (amount > 0),
+      currency VARCHAR(3) NOT NULL
+        CHECK (currency IN ('USD', 'ETB')),
+      note VARCHAR(200),
+      status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'confirmed', 'rejected')),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      reviewed_at TIMESTAMPTZ
+    )
+  `);
+
   const adminName = (
     process.env.ADMIN_NAME || "AbyssiniaSend Admin"
   ).trim();
