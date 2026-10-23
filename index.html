@@ -717,42 +717,123 @@
       </div>
 
       <div class="dashboard-grid">
-        <!-- FORM CONTAINER -->
-        <div class="card">
-          <h3 id="formTitle" style="color:var(--gold); margin-bottom:20px; font-size:18px;">New Transfer Order</h3>
-          <input type="hidden" id="editIndex" value="-1">
+       <!-- FORM CONTAINER -->
+<div class="card">
+  <h3 id="formTitle" style="color:var(--gold); margin-bottom:20px; font-size:18px;">
+    New Transfer Order
+  </h3>
 
-          <div class="form-group">
-            <label for="recipientName">Beneficiary Full Name</label>
-            <input type="text" id="recipientName" maxlength="100" placeholder="e.g. Abebe Kebede">
-          </div>
+  <input type="hidden" id="editIndex" value="-1">
 
-          <div class="form-group">
-            <label for="transferAmount">Transfer Amount (USD)</label>
-            <input type="number" id="transferAmount" min="0.01" max="1000000" step="0.01" value="100">
-          </div>
+  <div class="form-group">
+    <label for="recipientName">Beneficiary Full Name</label>
+    <input
+      type="text"
+      id="recipientName"
+      maxlength="100"
+      placeholder="Enter beneficiary full name"
+      required
+    >
+  </div>
 
-          <div class="form-group">
-            <label for="destinationBank">Payout Destination</label>
-            <select id="destinationBank">
-              <option value="Commercial Bank of Ethiopia">Commercial Bank of Ethiopia (CBE)</option>
-              <option value="Telebirr">Telebirr Wallet</option>
-              <option value="Bank of Abyssinia">Bank of Abyssinia</option>
-              <option value="Awash Bank">Awash Bank</option>
-              <option value="Dashen Bank">Dashen Bank</option>
-            </select>
-          </div>
+  <div class="form-group">
+    <label for="recipientAccount">Beneficiary Account Number</label>
+    <input
+      type="text"
+      id="recipientAccount"
+      maxlength="50"
+      placeholder="Enter bank account or wallet number"
+      required
+    >
+  </div>
 
-          <button class="btn btn-green" id="saveTransferBtn" type="button" style="width:100%;">
-            Submit Secure Order
-          </button>
+  <div class="form-group">
+    <label for="transferCurrency">Transfer Currency</label>
+    <select id="transferCurrency">
+      <option value="USD">USD — US Dollar</option>
+      <option value="EUR">EUR — Euro</option>
+      <option value="GBP">GBP — British Pound</option>
+    </select>
+  </div>
 
-          <button class="btn btn-outline" id="cancelEditBtn" type="button" style="width:100%; margin-top:10px; display:none;">
-            Cancel Editing
-          </button>
+  <div class="form-group">
+    <label for="transferAmount">Transfer Amount</label>
+    <input
+      type="number"
+      id="transferAmount"
+      min="0.01"
+      max="1000000"
+      step="0.01"
+      value="100"
+      required
+    >
+  </div>
 
-          <div id="transferMessage" class="message" aria-live="polite"></div>
-        </div>
+  <div class="form-group">
+    <label for="estimatedETB">Estimated Amount in ETB</label>
+    <input
+      type="text"
+      id="estimatedETB"
+      placeholder="Calculating exchange rate..."
+      readonly
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="transactionReference">Transaction Reference</label>
+    <input
+      type="text"
+      id="transactionReference"
+      maxlength="100"
+      placeholder="Enter transaction reference"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="paymentProof">Payment Confirmation File (Optional)</label>
+    <input
+      type="file"
+      id="paymentProof"
+      accept="image/*,.pdf"
+    >
+    <p class="note" style="margin-top:6px;">
+      Select an image or PDF file for reference.
+    </p>
+  </div>
+
+  <div class="form-group">
+    <label for="destinationBank">Payout Destination</label>
+    <select id="destinationBank">
+      <option value="Commercial Bank of Ethiopia">
+        Commercial Bank of Ethiopia (CBE)
+      </option>
+      <option value="Telebirr">Telebirr Wallet</option>
+      <option value="Bank of Abyssinia">Bank of Abyssinia</option>
+      <option value="Awash Bank">Awash Bank</option>
+      <option value="Dashen Bank">Dashen Bank</option>
+    </select>
+  </div>
+
+  <button
+    class="btn btn-green"
+    id="saveTransferBtn"
+    type="button"
+    style="width:100%;"
+  >
+    Submit Secure Order
+  </button>
+
+  <button
+    class="btn btn-outline"
+    id="cancelEditBtn"
+    type="button"
+    style="width:100%; margin-top:10px; display:none;"
+  >
+    Cancel Editing
+  </button>
+
+  <div id="transferMessage" class="message" aria-live="polite"></div>
+</div>
 
         <!-- QUEUE CONTAINER -->
         <div class="card">
@@ -912,7 +993,8 @@
         const etbRate = exchangeRates.ETB;
         document.getElementById("heroRateDisplay").textContent = etbRate ? `1 USD = ${etbRate.toFixed(2)} ETB` : "Unavailable";
         document.getElementById("heroRateNote").textContent = "Live api feed active.";
-        convertCurrency();
+      convertCurrency();
+calculateTransferETB();
       } catch (error) {
         status.textContent = "● Service Unavailable";
         status.style.color = "var(--red)";
@@ -950,175 +1032,322 @@
     fromSelect.addEventListener("change", convertCurrency);
     toSelect.addEventListener("change", convertCurrency);
 
-    // DASHBOARD & LOCAL STORAGE TRANSFERS
-    const STORAGE_KEY = "abyssinia_transfers_v2";
+   // DASHBOARD & LOCAL STORAGE TRANSFERS
+const STORAGE_KEY = "abyssinia_transfers_v2";
 
-    function loadTransfers() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        return Array.isArray(saved) ? saved : [];
-      } catch {
-        return [];
-      }
-    }
+function loadTransfers() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
 
-    let transfers = loadTransfers();
+let transfers = loadTransfers();
 
-    const recipientInput = document.getElementById("recipientName");
-    const transferAmountInput = document.getElementById("transferAmount");
-    const destinationBankSelect = document.getElementById("destinationBank");
-    const saveTransferBtn = document.getElementById("saveTransferBtn");
-    const editIndexInput = document.getElementById("editIndex");
-    const formTitle = document.getElementById("formTitle");
-    const transferListContainer = document.getElementById("transferListContainer");
-    const transferMessage = document.getElementById("transferMessage");
-    const cancelEditBtn = document.getElementById("cancelEditBtn");
+const recipientInput = document.getElementById("recipientName");
+const recipientAccountInput = document.getElementById("recipientAccount");
+const transferCurrencySelect = document.getElementById("transferCurrency");
+const transferAmountInput = document.getElementById("transferAmount");
+const estimatedETBInput = document.getElementById("estimatedETB");
+const transactionReferenceInput = document.getElementById("transactionReference");
+const paymentProofInput = document.getElementById("paymentProof");
+const destinationBankSelect = document.getElementById("destinationBank");
+const saveTransferBtn = document.getElementById("saveTransferBtn");
+const editIndexInput = document.getElementById("editIndex");
+const formTitle = document.getElementById("formTitle");
+const transferListContainer = document.getElementById("transferListContainer");
+const transferMessage = document.getElementById("transferMessage");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
 
-    function showMessage(msg, type) {
-      transferMessage.textContent = msg;
-      transferMessage.className = "message show " + type;
-      setTimeout(() => { transferMessage.classList.remove("show"); }, 4000);
-    }
+function showMessage(msg, type) {
+  transferMessage.textContent = msg;
+  transferMessage.className = "message show " + type;
+  setTimeout(() => {
+    transferMessage.classList.remove("show");
+  }, 4000);
+}
 
-    function persistAndRender() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(transfers));
-        renderTransfers();
-      } catch {
-        showMessage("Storage limit reached or blocked.", "error");
-      }
-    }
+function calculateTransferETB() {
+  const amount = Number(transferAmountInput.value);
+  const currency = transferCurrencySelect.value;
 
-    function resetForm() {
-      recipientInput.value = "";
-      transferAmountInput.value = "100";
-      editIndexInput.value = "-1";
-      formTitle.textContent = "New Transfer Order";
-      saveTransferBtn.textContent = "Submit Secure Order";
-      saveTransferBtn.className = "btn btn-green";
-      cancelEditBtn.style.display = "none";
-    }
+  if (
+    transferAmountInput.value.trim() === "" ||
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+    estimatedETBInput.value = "";
+    return;
+  }
 
-    function renderTransfers() {
-      transferListContainer.replaceChildren();
-      
-      // Update statistics
-      let totalVol = 0;
-      transfers.forEach(t => totalVol += Number(t.amount));
-      document.getElementById("statVolume").textContent = "$" + totalVol.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      document.getElementById("statCount").textContent = transfers.length;
+  if (
+    !exchangeRates.USD ||
+    !exchangeRates.ETB ||
+    !exchangeRates[currency]
+  ) {
+    estimatedETBInput.value = "Rate unavailable";
+    return;
+  }
 
-      if (transfers.length === 0) {
-        const empty = document.createElement("p");
-        empty.className = "note";
-        empty.style.textAlign = "center";
-        empty.style.padding = "30px";
-        empty.textContent = "No active transfer orders recorded.";
-        transferListContainer.appendChild(empty);
-        return;
-      }
+  const amountInUSD = amount / exchangeRates[currency];
+  const estimated = amountInUSD * exchangeRates.ETB;
 
-      transfers.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "transfer-item";
+  estimatedETBInput.value =
+    estimated.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) + " ETB";
+}
 
-        const info = document.createElement("div");
-        info.className = "transfer-info";
+transferAmountInput.addEventListener("input", calculateTransferETB);
+transferCurrencySelect.addEventListener("change", calculateTransferETB);
 
-        const name = document.createElement("h4");
-        name.textContent = item.name;
+function persistAndRender() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(transfers));
+    renderTransfers();
+  } catch {
+    showMessage("Storage limit reached or blocked.", "error");
+  }
+}
 
-        const details = document.createElement("p");
-        details.textContent = `$${Number(item.amount).toFixed(2)} USD • ${item.bank}`;
+function resetForm() {
+  recipientInput.value = "";
+  recipientAccountInput.value = "";
+  transferCurrencySelect.value = "USD";
+  transferAmountInput.value = "100";
+  estimatedETBInput.value = "";
+  transactionReferenceInput.value = "";
+  paymentProofInput.value = "";
+  destinationBankSelect.selectedIndex = 0;
 
-        const badge = document.createElement("span");
-        badge.className = "badge " + (item.status === "Completed" ? "badge-sent" : "badge-pending");
-        badge.textContent = item.status;
+  editIndexInput.value = "-1";
+  formTitle.textContent = "New Transfer Order";
+  saveTransferBtn.textContent = "Submit Secure Order";
+  saveTransferBtn.className = "btn btn-green";
+  cancelEditBtn.style.display = "none";
 
-        info.append(name, details, badge);
+  calculateTransferETB();
+}
 
-        const actions = document.createElement("div");
-        actions.className = "transfer-actions";
+function renderTransfers() {
+  transferListContainer.replaceChildren();
 
-        if (item.status !== "Completed") {
-          const procBtn = document.createElement("button");
-          procBtn.type = "button";
-          procBtn.className = "btn btn-sm btn-green";
-          procBtn.textContent = "Process";
-          procBtn.onclick = () => {
-            transfers[index].status = "Completed";
-            persistAndRender();
-            showMessage("Order processed successfully.", "success");
-          };
-          actions.appendChild(procBtn);
-        }
+  let totalVol = 0;
 
-        const editBtn = document.createElement("button");
-        editBtn.type = "button";
-        editBtn.className = "btn btn-sm btn-outline";
-        editBtn.textContent = "Edit";
-        editBtn.onclick = () => {
-          recipientInput.value = item.name;
-          transferAmountInput.value = item.amount;
-          destinationBankSelect.value = item.bank;
-          editIndexInput.value = String(index);
+  transfers.forEach(item => {
+    totalVol += Number(item.amount) || 0;
+  });
 
-          formTitle.textContent = "Edit Transfer Order";
-          saveTransferBtn.textContent = "Update Order";
-          saveTransferBtn.className = "btn btn-blue";
-          cancelEditBtn.style.display = "block";
-          switchPage("dashboard");
-          recipientInput.focus();
-        };
-
-        const delBtn = document.createElement("button");
-        delBtn.type = "button";
-        delBtn.className = "btn btn-sm btn-red";
-        delBtn.textContent = "Delete";
-        delBtn.onclick = () => {
-          if (confirm("Remove this order record?")) {
-            transfers.splice(index, 1);
-            persistAndRender();
-            showMessage("Order record deleted.", "success");
-          }
-        };
-
-        actions.append(editBtn, delBtn);
-        card.append(info, actions);
-        transferListContainer.appendChild(card);
-      });
-    }
-
-    saveTransferBtn.addEventListener("click", () => {
-      const name = recipientInput.value.trim();
-      const amount = Number(transferAmountInput.value);
-      const bank = destinationBankSelect.value;
-      const editIndex = Number(editIndexInput.value);
-
-      if (!name || name.length > 100 || !Number.isFinite(amount) || amount <= 0) {
-        showMessage("Please provide a valid recipient name and amount.", "error");
-        return;
-      }
-
-      if (editIndex === -1) {
-        transfers.unshift({ name, amount, bank, status: "Processing", createdAt: new Date().toISOString() });
-      } else {
-        if (!transfers[editIndex]) {
-          showMessage("Record error. Please refresh.", "error");
-          resetForm();
-          return;
-        }
-        transfers[editIndex].name = name;
-        transfers[editIndex].amount = amount;
-        transfers[editIndex].bank = bank;
-      }
-
-      persistAndRender();
-      resetForm();
-      showMessage("Transfer order saved successfully.", "success");
+  document.getElementById("statVolume").textContent =
+    "$" + totalVol.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
 
-    cancelEditBtn.addEventListener("click", resetForm);
+  document.getElementById("statCount").textContent = transfers.length;
+
+  if (transfers.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "note";
+    empty.style.textAlign = "center";
+    empty.style.padding = "30px";
+    empty.textContent = "No active transfer orders recorded.";
+    transferListContainer.appendChild(empty);
+    return;
+  }
+
+  transfers.forEach((item, index) => {
+    const card = document.createElement("div");
+    card.className = "transfer-item";
+
+    const info = document.createElement("div");
+    info.className = "transfer-info";
+
+    const name = document.createElement("h4");
+    name.textContent = item.name || "Unnamed beneficiary";
+
+    const details = document.createElement("p");
+    const currency = item.currency || "USD";
+    details.textContent =
+      `${Number(item.amount).toFixed(2)} ${currency} • ${item.bank}`;
+
+    info.append(name, details);
+
+    if (item.account) {
+      const account = document.createElement("p");
+      account.textContent = "Account: " + item.account;
+      info.appendChild(account);
+    }
+
+    if (item.reference) {
+      const reference = document.createElement("p");
+      reference.textContent = "Reference: " + item.reference;
+      info.appendChild(reference);
+    }
+
+    if (item.estimatedETB) {
+      const etb = document.createElement("p");
+      etb.textContent =
+        "Estimated value: " +
+        Number(item.estimatedETB).toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) +
+        " ETB";
+      info.appendChild(etb);
+    }
+
+    if (item.paymentProofSelected) {
+      const proof = document.createElement("p");
+      proof.textContent = "Payment confirmation file selected";
+      info.appendChild(proof);
+    }
+
+    const badge = document.createElement("span");
+    badge.className =
+      "badge " +
+      (item.status === "Completed" ? "badge-sent" : "badge-pending");
+    badge.textContent = item.status || "Processing";
+    info.appendChild(badge);
+
+    const actions = document.createElement("div");
+    actions.className = "transfer-actions";
+
+    if (item.status !== "Completed") {
+      const procBtn = document.createElement("button");
+      procBtn.type = "button";
+      procBtn.className = "btn btn-sm btn-green";
+      procBtn.textContent = "Process";
+
+      procBtn.onclick = () => {
+        transfers[index].status = "Completed";
+        persistAndRender();
+        showMessage("Order processed successfully.", "success");
+      };
+
+      actions.appendChild(procBtn);
+    }
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "btn btn-sm btn-outline";
+    editBtn.textContent = "Edit";
+
+    editBtn.onclick = () => {
+      recipientInput.value = item.name || "";
+      recipientAccountInput.value = item.account || "";
+      transferCurrencySelect.value = item.currency || "USD";
+      transferAmountInput.value = item.amount;
+      transactionReferenceInput.value = item.reference || "";
+      destinationBankSelect.value = item.bank;
+
+      paymentProofInput.value = "";
+      editIndexInput.value = String(index);
+
+      formTitle.textContent = "Edit Transfer Order";
+      saveTransferBtn.textContent = "Update Order";
+      saveTransferBtn.className = "btn btn-blue";
+      cancelEditBtn.style.display = "block";
+
+      calculateTransferETB();
+      switchPage("dashboard");
+      recipientInput.focus();
+    };
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn btn-sm btn-red";
+    delBtn.textContent = "Delete";
+
+    delBtn.onclick = () => {
+      if (confirm("Remove this order record?")) {
+        transfers.splice(index, 1);
+        persistAndRender();
+        showMessage("Order record deleted.", "success");
+      }
+    };
+
+    actions.append(editBtn, delBtn);
+    card.append(info, actions);
+    transferListContainer.appendChild(card);
+  });
+}
+
+saveTransferBtn.addEventListener("click", () => {
+  const name = recipientInput.value.trim();
+  const account = recipientAccountInput.value.trim();
+  const currency = transferCurrencySelect.value;
+  const amount = Number(transferAmountInput.value);
+  const reference = transactionReferenceInput.value.trim();
+  const bank = destinationBankSelect.value;
+  const editIndex = Number(editIndexInput.value);
+  const paymentProofSelected = paymentProofInput.files.length > 0;
+
+  if (
+    !name ||
+    name.length > 100 ||
+    !account ||
+    account.length > 50 ||
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
+    amount > 1000000
+  ) {
+    showMessage(
+      "Please enter a valid beneficiary name, account number and amount.",
+      "error"
+    );
+    return;
+  }
+
+  let estimatedETB = null;
+
+  if (
+    exchangeRates[currency] &&
+    exchangeRates.ETB &&
+    exchangeRates.USD
+  ) {
+    estimatedETB =
+      (amount / exchangeRates[currency]) * exchangeRates.ETB;
+  }
+
+  const orderData = {
+    name,
+    account,
+    currency,
+    amount,
+    bank,
+    reference,
+    estimatedETB,
+    paymentProofSelected
+  };
+
+  if (editIndex === -1) {
+    transfers.unshift({
+      ...orderData,
+      status: "Processing",
+      createdAt: new Date().toISOString()
+    });
+  } else {
+    if (!transfers[editIndex]) {
+      showMessage("Record error. Please refresh.", "error");
+      resetForm();
+      return;
+    }
+
+    transfers[editIndex] = {
+      ...transfers[editIndex],
+      ...orderData
+    };
+  }
+
+  persistAndRender();
+  resetForm();
+  showMessage("Transfer order saved successfully.", "success");
+});
+cancelEditBtn.addEventListener("click", resetForm);
 
 
 /* REAL LOGOUT */
