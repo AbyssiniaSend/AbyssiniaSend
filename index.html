@@ -665,6 +665,61 @@
       </section>
     </div>
 
+    <!-- DEPOSIT REQUEST SECTION -->
+    <section class="section" id="deposit-section">
+      <div class="section-header">
+        <h2 class="section-title">Deposit Request</h2>
+        <p class="section-subtitle">
+          Submit a  deposit request for Admin review.
+        </p>
+      </div>
+
+      <div class="card">
+        <form id="depositRequestForm">
+          <div class="form-group">
+            <label for="depositAmount">Deposit Amount</label>
+            <input
+              type="number"
+              id="depositAmount"
+              min="1"
+              step="0.01"
+              placeholder="Enter amount"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="depositCurrency">Currency</label>
+            <select id="depositCurrency" required>
+              <option value="USD">USD — US Dollar</option>
+              <option value="ETB">ETB — Ethiopian Birr</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="depositNote">Note (Optional)</label>
+            <input
+              type="text"
+              id="depositNote"
+              maxlength="200"
+              placeholder="Enter a note or reference"
+            >
+          </div>
+
+          <button type="submit" class="btn">
+            Submit Deposit Request
+          </button>
+
+        <p class="note">
+  ፈጣን፣ ታማኝ እና ደህንነቱ የተጠበቀ — ከእኛ ጋር አብረው ይስሩ! <br>
+  Fast, reliable, and secure — Work with us!
+</p>
+
+          <div id="depositMessage" class="message" role="status"></div>
+        </form>
+      </div>
+    </section>
+
     <!-- APP MENU -->
     <div id="page-menu" class="page-view">
       <div class="section-header">
