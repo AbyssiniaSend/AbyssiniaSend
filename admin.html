@@ -129,111 +129,257 @@
     </section>
   </main>
 
-  <script>
-    const statusEl = document.getElementById("status");
-    const adminInfo = document.getElementById("adminInfo");
-    const usersStatus = document.getElementById("usersStatus");
-    const usersTable = document.getElementById("usersTable");
 
-    async function checkAdmin() {
-      try {
-        const response = await fetch("/api/admin/check", {
-          credentials: "same-origin"
-        });
+<script>
+  const statusEl = document.getElementById("status");
+  const adminInfo = document.getElementById("adminInfo");
+  const usersStatus = document.getElementById("usersStatus");
+  const usersTable = document.getElementById("usersTable");
+  const transferStatus = document.getElementById("transferStatus");
+  const transferTable = document.getElementById("transferTable");
 
-        if (response.status === 401) {
-          window.location.replace("/login");
-          return false;
-        }
+  async function checkAdmin() {
+    try {
+      const response = await fetch("/api/admin/check", {
+        credentials: "same-origin",
+        cache: "no-store"
+      });
 
-        if (response.status === 403) {
-          statusEl.textContent = "Access denied: Admin permission required.";
-          adminInfo.textContent = "This account is not an administrator.";
-          usersTable.innerHTML = "";
-          return false;
-        }
-
-        if (!response.ok) {
-          throw new Error("Could not verify admin access.");
-        }
-
-        const data = await response.json();
-        adminInfo.textContent =
-          "Signed in as " + (data.user?.email || "Admin");
-        statusEl.textContent = "Admin access verified.";
-        return true;
-      } catch (error) {
-        statusEl.textContent =
-          "Could not connect to the server. Please try again.";
+      if (response.status === 401) {
+        window.location.replace("/login");
         return false;
       }
+
+      if (response.status === 403) {
+        statusEl.textContent = "Access denied: Admin permission required.";
+        adminInfo.textContent = "This account is not an administrator.";
+        usersTable.replaceChildren();
+        transferTable.replaceChildren();
+        return false;
+      }
+
+      if (!response.ok) {
+        throw new Error("Could not verify admin access.");
+      }
+
+      const data = await response.json();
+      adminInfo.textContent =
+        "Signed in as " + (data.user?.email || "Admin");
+      statusEl.textContent = "Admin access verified.";
+      return true;
+    } catch (error) {
+      statusEl.textContent = "Could not connect to the server.";
+      return false;
     }
+  }
 
-    async function loadUsers() {
-      usersStatus.textContent = "Loading users...";
-      usersTable.innerHTML = "";
+  async function loadUsers() {
+    usersStatus.textContent = "Loading users...";
+    usersTable.replaceChildren();
 
-      try {
-        const response = await fetch("/api/admin/users", {
-          credentials: "same-origin"
+    try {
+      const response = await fetch("/api/admin/users", {
+        credentials: "same-origin",
+        cache: "no-store"
+      });
+
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to load users.");
+      }
+
+      const data = await response.json();
+      const users = Array.isArray(data.users) ? data.users : [];
+
+      if (users.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 3;
+        cell.textContent = "No users found.";
+        row.appendChild(cell);
+        usersTable.appendChild(row);
+        usersStatus.textContent = "No registered users.";
+        return;
+      }
+
+      users.forEach(function(user) {
+        const row = document.createElement("tr");
+
+        [
+          user.fullName || user.full_name || "—",
+          user.email || "—",
+          user.role || "user"
+        ].forEach(function(value) {
+          const cell = document.createElement("td");
+          cell.textContent = String(value);
+          row.appendChild(cell);
         });
 
-        if (response.status === 401) {
-          window.location.replace("/login");
-          return;
-        }
+        usersTable.appendChild(row);
+      });
 
-        if (response.status === 403) {
-          usersStatus.textContent = "Access denied.";
-          return;
-        }
+      usersStatus.textContent = "Users loaded successfully.";
+    } catch (error) {
+      usersStatus.textContent = "Could not load users. Check the server.";
+    }
+  }
 
-        if (!response.ok) {
-          throw new Error("Failed to load users.");
-        }
+  async function loadTransfers() {
+    transferStatus.textContent = "Loading transfer requests...";
+    transferTable.replaceChildren();
 
-        const data = await response.json();
-        const users = Array.isArray(data) ? data : data.users;
+    try {
+      const response = await fetch("/api/admin/transfers", {
+        credentials: "same-origin",
+        cache: "no-store"
+      });
 
-        if (!Array.isArray(users)) {
-          throw new Error("Unexpected server response.");
-        }
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
 
-        if (users.length === 0) {
-          usersTable.innerHTML =
-            '<tr><td colspan="3">No users found.</td></tr>';
-          usersStatus.textContent = "";
-          return;
-        }
+      if (!response.ok) {
+        throw new Error("Failed to load transfer requests.");
+      }
 
-        users.forEach(function(user) {
-          const row = document.createElement("tr");
+      const data = await response.json();
+      const transfers = data.transfers;
 
-          [user.fullName || user.name || "—",
-           user.email || "—",
-           user.role || "user"].forEach(function(value) {
-            const cell = document.createElement("td");
-            cell.textContent = String(value);
-            row.appendChild(cell);
+      if (!Array.isArray(transfers)) {
+        throw new Error("Unexpected transfer response.");
+      }
+
+      if (transfers.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.textContent = "No transfer requests found.";
+        row.appendChild(cell);
+        transferTable.appendChild(row);
+        transferStatus.textContent = "No requests to review.";
+        return;
+      }
+
+      transfers.forEach(function(transfer) {
+        const row = document.createElement("tr");
+
+        const values = [
+          transfer.id,
+          (transfer.full_name || "Unknown") +
+            " (" + (transfer.email || "—") + ")",
+          String(transfer.amount) + " " + (transfer.currency || "ETB"),
+          transfer.status || "pending"
+        ];
+
+        values.forEach(function(value) {
+          const cell = document.createElement("td");
+          cell.textContent = String(value);
+          row.appendChild(cell);
+        });
+
+        const actionCell = document.createElement("td");
+
+        if (transfer.status === "pending") {
+          const confirmBtn = document.createElement("button");
+          confirmBtn.textContent = "Confirm";
+          confirmBtn.style.background = "#238636";
+          confirmBtn.style.color = "#ffffff";
+          confirmBtn.style.marginRight = "6px";
+
+          confirmBtn.addEventListener("click", function() {
+            updateTransferStatus(transfer.id, "confirmed");
           });
 
-          usersTable.appendChild(row);
-        });
+          const rejectBtn = document.createElement("button");
+          rejectBtn.textContent = "Reject";
+          rejectBtn.style.background = "#c83d4d";
+          rejectBtn.style.color = "#ffffff";
 
-        usersStatus.textContent = "Users loaded successfully.";
-      } catch (error) {
-        usersStatus.textContent =
-          "Could not load users. Check the backend response.";
-      }
+          rejectBtn.addEventListener("click", function() {
+            updateTransferStatus(transfer.id, "rejected");
+          });
+
+          actionCell.append(confirmBtn, rejectBtn);
+        } else {
+          actionCell.textContent = "Already reviewed";
+        }
+
+        row.appendChild(actionCell);
+        transferTable.appendChild(row);
+      });
+
+      transferStatus.textContent =
+        "Transfer requests loaded successfully.";
+    } catch (error) {
+      transferStatus.textContent =
+        "Could not load transfer requests. Check Render logs.";
+    }
+  }
+
+  async function updateTransferStatus(id, newStatus) {
+    const actionName = newStatus === "confirmed" ? "Confirm" : "Reject";
+
+    if (!window.confirm(
+      actionName + " request #" + id + "? This changes the request status only."
+    )) {
+      return;
     }
 
-    document.getElementById("refreshBtn").addEventListener("click", async function() {
+    transferStatus.textContent = "Updating request #" + id + "...";
+
+    try {
+      const response = await fetch(
+        "/api/admin/transfers/" + encodeURIComponent(id) + "/status",
+        {
+          method: "PATCH",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ status: newStatus })
+        }
+      );
+
+      const data = await response.json().catch(function() {
+        return {};
+      });
+
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || "Could not update request.");
+      }
+
+      transferStatus.textContent =
+        "Request #" + id + " " + newStatus + " successfully.";
+
+      await loadTransfers();
+    } catch (error) {
+      transferStatus.textContent =
+        error.message || "Could not update request. Please try again.";
+    }
+  }
+
+  document.getElementById("refreshBtn").addEventListener(
+    "click",
+    async function() {
       if (await checkAdmin()) {
         await loadUsers();
       }
-    });
+    }
+  );
 
-    document.getElementById("logoutBtn").addEventListener("click", async function() {
+  document.getElementById("logoutBtn").addEventListener(
+    "click",
+    async function() {
       try {
         const response = await fetch("/api/logout", {
           method: "POST",
@@ -248,13 +394,15 @@
       } catch (error) {
         statusEl.textContent = "Could not connect to the server.";
       }
-    });
+    }
+  );
 
-    (async function init() {
-      if (await checkAdmin()) {
-        await loadUsers();
-      }
-    })();
-  </script>
+  (async function init() {
+    if (await checkAdmin()) {
+      await Promise.all([loadUsers(), loadTransfers()]);
+    }
+  })();
+</script>
+
 </body>
 </html>
