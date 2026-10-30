@@ -2732,7 +2732,15 @@ app.get("/admin", requireLogin, requireAdmin, (req, res) => {
     path.join(__dirname, "admin.html")
   );
 });
-
+// ABYSSINIASEND LOGO
+app.get("/logo.png", (req, res) => {
+  res.sendFile(
+    path.join(
+      __dirname,
+      "AbyssiniaSend Global Transfer Logo.png"
+    )
+  );
+});
 
 // ========================================
 // STATIC ASSETS
