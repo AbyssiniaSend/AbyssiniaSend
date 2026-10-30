@@ -701,67 +701,94 @@ th {
 
 
       <!-- SEND MONEY PAGE -->
-      <section class="page" id="send-money">
+<section class="page" id="send-money">
+  <div class="panel">
+    <h2>➤ Send Money</h2>
+   <p class="muted">
+  Send amount in USD. Recipient payout is estimated in Ethiopian Birr (ETB).
+  Secure live transfer requests are processed upon verification.
+</p>
 
-        <div class="panel">
-          <h2>➤ Send Money</h2>
+    <form id="transferForm">
 
-         <p class="muted">Submit a secure transfer request for processing. Real funds will be transferred upon verification.</p>
+      <label>Send Amount (USD)</label>
+      <input class="form-control" type="number"
+        id="transferAmount" min="1" step="0.01"
+        placeholder="Enter USD amount" required>
 
-          <form id="transferForm">
+      <div class="panel" style="background:#041426;margin-bottom:18px;">
+        <p class="muted">Exchange Rate</p>
+        <strong id="transferRate" style="color:var(--gold)">
+          Loading rate...
+        </strong>
 
-            <label>Recipient Name</label>
-            <input
-              class="form-control"
-              type="text"
-              id="recipientName"
-              placeholder="Enter beneficiary full name"
-              required
-            >
+        <hr style="border-color:var(--border);margin:12px 0">
 
-            <label>Recipient Phone or Account</label>
-            <input
-              class="form-control"
-              type="text"
-              id="recipientContact"
-              placeholder="Phone number or account number"
-              required
-            >
+        <p class="muted">Recipient Gets (ETB)</p>
+        <h2 id="estimatedETB" style="color:var(--green)">— ETB</h2>
+        <small id="transferCalculationNote" class="muted">
+          Enter USD amount.
+        </small>
+      </div>
 
-            <label>Amount (USD)</label>
-            <input
-              class="form-control"
-              type="number"
-              id="transferAmount"
-              min="1"
-              step="0.01"
-              placeholder="Enter amount"
-              required
-            >
+      <label>Beneficiary Full Name</label>
+      <input class="form-control" id="recipientName"
+        maxlength="120" placeholder="Full name" required>
 
-            <label>Payout Institution</label>
-            <select
-              class="form-control"
-              id="payoutMethod"
-              required
-            >
-              <option value="">Select institution</option>
-              <option value="Commercial Bank of Ethiopia">
-                Commercial Bank of Ethiopia
-              </option>
-              <option value="Telebirr">
-                Telebirr
-              </option>
-              <option value="Bank of Abyssinia">
-                Bank of Abyssinia
-              </option>
-              <option value="Awash Bank">
-                Awash Bank
-              </option>
-              <option value="Dashen Bank">
-                Dashen Bank
-              </option>
-            </select>
+      <label>Destination Bank</label>
+      <select class="form-control" id="payoutMethod" required>
+        <option value="">Select Ethiopian bank</option>
+        <option>Abay Bank</option>
+        <option>Addis International Bank</option>
+        <option>Ahadu Bank</option>
+        <option>Amhara Bank</option>
+        <option>Awash Bank</option>
+        <option>Bank of Abyssinia</option>
+        <option>Berhan Bank</option>
+        <option>Bunna Bank</option>
+        <option>Commercial Bank of Ethiopia</option>
+        <option>Cooperative Bank of Oromia</option>
+        <option>Dashen Bank</option>
+        <option>Development Bank of Ethiopia</option>
+        <option>Enat Bank</option>
+        <option>Gadaa Bank</option>
+        <option>Global Bank Ethiopia</option>
+        <option>Goh Betoch Bank</option>
+        <option>Hibret Bank</option>
+        <option>Hijra Bank</option>
+        <option>Lion International Bank</option>
+        <option>Nib International Bank</option>
+        <option>Omo Bank</option>
+        <option>Oromia Bank</option>
+        <option>Rammis Bank</option>
+        <option>Shabelle Bank</option>
+        <option>Sidama Bank</option>
+        <option>Siinqee Bank</option>
+        <option>Siket Bank</option>
+        <option>Tsedey Bank</option>
+        <option>Tsehay Bank</option>
+        <option>Wegagen Bank</option>
+        <option>ZamZam Bank</option>
+        <option>Zemen Bank</option>
+        <option>Telebirr</option>
+      </select>
+
+      <label>Bank Account / Wallet Number</label>
+      <input class="form-control" id="recipientContact"
+        maxlength="120" placeholder="Enter account number" required>
+
+      <label>Note (Optional)</label>
+      <textarea class="form-control" id="transferNote"
+        rows="3" maxlength="200" placeholder="Additional information"></textarea>
+
+      <button class="btn btn-gold" type="submit">
+        Submit Transfer Request
+      </button>
+
+      <p id="transferMessage" class="muted"></p>
+    </form>
+  </div>
+</section>
 
             <label>Note (Optional)</label>
             <textarea
@@ -1320,6 +1347,72 @@ showMessage(
     }
   });
 
+// ========================================
+// USD TO ETB EXCHANGE RATE
+// ========================================
+
+let usdToEtbRate = null;
+
+async function loadTransferExchangeRate() {
+  try {
+    const response = await fetch(
+      "https://open.er-api.com/v6/latest/USD"
+    );
+
+    if (!response.ok) throw new Error("Rate unavailable");
+
+    const data = await response.json();
+    const rate = Number(data?.rates?.ETB);
+
+    if (data.result !== "success" || !Number.isFinite(rate) || rate <= 0) {
+      throw new Error("Invalid exchange rate");
+    }
+
+    usdToEtbRate = rate;
+
+    document.getElementById("transferRate").textContent =
+      `1 USD = ${rate.toFixed(4)} ETB`;
+
+    updateEstimatedETB();
+
+  } catch (error) {
+    usdToEtbRate = null;
+    document.getElementById("transferRate").textContent =
+      "Exchange rate unavailable";
+    document.getElementById("estimatedETB").textContent = "— ETB";
+    console.error(error);
+  }
+}
+
+function updateEstimatedETB() {
+  const amount = Number(
+    document.getElementById("transferAmount").value
+  );
+
+  const output = document.getElementById("estimatedETB");
+  const note = document.getElementById("transferCalculationNote");
+
+  if (!amount || amount <= 0 || !usdToEtbRate) {
+    output.textContent = "— ETB";
+    note.textContent = "Enter a valid USD amount.";
+    return;
+  }
+
+  const result = amount * usdToEtbRate;
+
+  output.textContent = result.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }) + " ETB";
+
+  note.textContent = `${amount.toFixed(2)} USD × ${usdToEtbRate.toFixed(4)}`;
+}
+
+document.getElementById("transferAmount")
+  .addEventListener("input", updateEstimatedETB);
+
+loadTransferExchangeRate();
+
 
 // ========================================
 // SEND MONEY REQUEST
@@ -1332,43 +1425,55 @@ document.getElementById("transferForm")
 
     const button = this.querySelector("button[type=submit]");
 
+    if (!usdToEtbRate) {
+      showMessage("transferMessage", "Exchange rate unavailable. Try again later.");
+      return;
+    }
+
     button.disabled = true;
 
     try {
+      const amount = Number(
+        document.getElementById("transferAmount").value
+      );
+
       const data = await apiRequest("/api/transfers", {
         method: "POST",
 
         body: JSON.stringify({
-          amount: document.getElementById(
-            "transferAmount"
-          ).value,
+          amount: amount,
 
-          recipient_name: document.getElementById(
+          recipient_full_name: document.getElementById(
             "recipientName"
-          ).value,
+          ).value.trim(),
 
-          recipient_contact: document.getElementById(
-            "recipientContact"
-          ).value,
-
-          payout_method: document.getElementById(
+          bank_name: document.getElementById(
             "payoutMethod"
           ).value,
 
+          account_number: document.getElementById(
+            "recipientContact"
+          ).value.trim(),
+
           note: document.getElementById(
             "transferNote"
-          ).value
+          ).value.trim()
         })
       });
 
+      const etb = amount * usdToEtbRate;
+
       showMessage(
         "transferMessage",
-        data.message,
+        `${data.message} Estimated payout: ${etb.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })} ETB.`,
         true
       );
 
       this.reset();
-
+      updateEstimatedETB();
       loadTransferHistory();
 
     } catch (error) {
@@ -1378,8 +1483,6 @@ document.getElementById("transferForm")
       button.disabled = false;
     }
   });
-
-
 // ========================================
 // DEPOSIT HISTORY
 // ========================================
@@ -1427,33 +1530,37 @@ async function loadDepositHistory() {
 // ========================================
 // TRANSFER HISTORY
 // ========================================
-
 async function loadTransferHistory() {
   const tbody = document.getElementById("transferHistory");
 
+  if (!tbody) return;
+
   try {
-    const data = await apiRequest("/api/transfers/mine");
+    const data = await apiRequest("/api/transactions/mine");
 
     tbody.replaceChildren();
 
-    if (!data.transfers || data.transfers.length === 0) {
+    const transfers = (data.transactions || []).filter(
+      transfer => transfer.type === "transfer"
+    );
+
+    if (transfers.length === 0) {
       const row = tbody.insertRow();
       const cell = row.insertCell();
 
       cell.colSpan = 4;
       cell.textContent = "No transfer history found.";
-
       return;
     }
 
-    data.transfers.forEach(transfer => {
+    transfers.forEach(transfer => {
       const row = tbody.insertRow();
 
       const values = [
         formatDate(transfer.created_at),
-        transfer.recipient_name,
-        formatMoney(transfer.amount, transfer.currency),
-        transfer.status
+        transfer.recipient || "N/A",
+        formatMoney(transfer.amount, transfer.currency || "USD"),
+        transfer.status || "Pending"
       ];
 
       values.forEach(value => {
@@ -1463,10 +1570,10 @@ async function loadTransferHistory() {
     });
 
   } catch (error) {
+    console.error("Transfer history error:", error);
     tbody.textContent = error.message;
   }
 }
-
 
 // ========================================
 // SUPPORT CHAT
