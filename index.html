@@ -720,49 +720,78 @@
 
       
 <!-- BALANCE AND ACTION BUTTONS -->
+<!-- USD WALLET AND ACTION BUTTONS -->
 <div class="card" style="margin-bottom:24px;">
-  <div class="stat-label">Available Balance (Demo)</div>
+  <div class="stat-label">Available USD Balance</div>
   <div class="stat-value" id="availableBalance">$0.00</div>
-  <p style="font-size:12px; color:var(--muted); margin-top:8px;">
-    Demo balance only. No real funds are held.
+
+  <p class="note">
+    Balance updates only after administrator approval.
   </p>
 
-  <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:20px;">
-    <button class="btn btn-green" type="button"
-      onclick="showDashboardPanel('deposit')">
-      + Deposit
-    </button>
+  <button class="btn btn-green" type="button"
+    onclick="showDashboardPanel('deposit')">
+    + Add Money
+  </button>
 
-    <button class="btn btn-blue" type="button"
-      onclick="showDashboardPanel('transfer')">
-      Transfer / Send Money
-    </button>
-  </div>
+  <button class="btn btn-blue" type="button"
+    onclick="showDashboardPanel('transfer')">
+    Send Money
+  </button>
 </div>
 
-<!-- DEPOSIT PANEL -->
-<div id="depositPanel" class="card" style="display:none; margin-bottom:24px;">
-  <h3 style="color:var(--gold); margin-bottom:20px;">Deposit Request</h3>
+<!-- ADD MONEY PANEL -->
+<div id="depositPanel" class="card"
+  style="display:none; margin-bottom:24px;">
+
+  <h3 style="color:var(--gold); margin-bottom:10px;">
+    Add Money to USD Wallet
+  </h3>
+
+  <p class="note" style="margin-bottom:20px;">
+    Follow the payment instructions and submit your transaction reference.
+    Your request will remain pending until reviewed by an administrator.
+  </p>
+
+  <div class="form-group">
+    <label for="paymentMethodSelect">Payment Method</label>
+    <select id="paymentMethodSelect" required>
+      <option value="">Loading payment methods...</option>
+    </select>
+  </div>
+
+  <div id="paymentMethodDetails" class="card"
+    style="margin-bottom:20px; padding:18px;">
+    <p class="note">Select a payment method to see instructions.</p>
+  </div>
 
   <form id="depositRequestForm">
+
     <div class="form-group">
-      <label for="depositAmount">Amount</label>
+      <label for="depositAmount">Deposit Amount (USD)</label>
       <input type="number" id="depositAmount"
-        min="1" step="0.01" placeholder="Enter amount" required>
+        min="1" max="100000000" step="0.01"
+        placeholder="Enter USD amount" required>
+    </div>
+
+    <input type="hidden" id="depositCurrency" value="USD">
+
+    <div class="form-group">
+      <label for="depositTransactionReference">
+        Transaction Reference / ID
+      </label>
+      <input type="text"
+        id="depositTransactionReference"
+        maxlength="120"
+        placeholder="Enter payment transaction ID"
+        required>
     </div>
 
     <div class="form-group">
-      <label for="depositCurrency">Currency</label>
-      <select id="depositCurrency" required>
-        <option value="USD">USD — US Dollar</option>
-        <option value="ETB">ETB — Ethiopian Birr</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="depositNote">Payment Reference / Note (Optional)</label>
-      <input type="text" id="depositNote" maxlength="200"
-        placeholder="Enter payment reference">
+      <label for="depositNote">Additional Note (Optional)</label>
+      <input type="text" id="depositNote"
+        maxlength="200"
+        placeholder="Additional information">
     </div>
 
     <button class="btn btn-green" type="submit">
@@ -771,15 +800,47 @@
 
     <button class="btn btn-outline" type="button"
       onclick="showDashboardPanel('transfer')">
-      Back to Transfer
+      Back to Dashboard
     </button>
 
-    <div id="depositMessage" class="message" role="status"></div>
+    <div id="depositMessage" class="message"
+      role="status" aria-live="polite"></div>
   </form>
 </div>
 
-<div class="dashboard-grid" id="transferPanel">
+<!-- SUPPORT CHAT PLACEHOLDER -->
+<div id="supportPanel" class="card"
+  style="display:none; margin-bottom:24px;">
+  <h3 style="color:var(--gold); margin-bottom:12px;">
+    Customer Support
+  </h3>
+  <p class="note">
+    Direct communication with the AbyssiniaSend administrator
+    will be available in the next development step.
+  </p>
+  <button class="btn btn-outline" type="button"
+    onclick="showDashboardPanel('transfer')">
+    Back to Dashboard
+  </button>
+</div>
 
+<!-- DEPOSIT HISTORY -->
+<div class="card" style="margin-bottom:24px;">
+  <div style="display:flex; justify-content:space-between;
+    align-items:center; gap:12px; flex-wrap:wrap;">
+    <h3 style="color:var(--gold);">Deposit History</h3>
+    <button class="btn btn-outline btn-sm"
+      type="button" onclick="loadDepositHistory()">
+      Refresh
+    </button>
+  </div>
+
+  <div id="depositHistoryList" class="transfer-list"
+    style="margin-top:18px;">
+    <p class="note">Loading deposit history...</p>
+  </div>
+</div>
+<div id="transferPanel" class="dashboard-grid">
        <!-- FORM CONTAINER -->
 <div class="card">
   <h3 id="formTitle" style="color:var(--gold); margin-bottom:20px; font-size:18px;">
@@ -1071,28 +1132,120 @@
       window.scrollTo(0, 0);
     }
 
-    // SHOW DEPOSIT OR TRANSFER PANEL
-    function showDashboardPanel(panel) {
-      const depositPanel = document.getElementById("depositPanel");
-      const transferPanel = document.getElementById("transferPanel");
+   function showDashboardPanel(panel) {
+  const panels = {
+    deposit: document.getElementById("depositPanel"),
+    transfer: document.getElementById("transferPanel"),
+    support: document.getElementById("supportPanel")
+  };
 
-      if (!depositPanel || !transferPanel) {
-        console.error("Dashboard panels were not found.");
-        return;
-      }
-
-      depositPanel.style.display =
-        panel === "deposit" ? "block" : "none";
-
-      transferPanel.style.display =
-        panel === "transfer" ? "grid" : "none";
-
-      if (panel === "deposit") {
-        document.getElementById("depositAmount").focus();
-      }
-
-      window.scrollTo(0, 0);
+  Object.entries(panels).forEach(([name, element]) => {
+    if (element) {
+      element.style.display =
+        name === panel
+          ? (name === "transfer" ? "grid" : "block")
+          : "none";
     }
+  });
+
+  if (panel === "deposit") {
+    loadPaymentMethods();
+    document.getElementById("depositAmount").focus();
+  }
+
+  window.scrollTo(0, 0);
+}
+async function loadWalletBalance() {
+  const element = document.getElementById("availableBalance");
+  if (!element) return;
+
+  try {
+    const response = await fetch("/api/wallet", {
+      credentials: "same-origin"
+    });
+
+    if (!response.ok) throw new Error("Wallet loading failed");
+
+    const data = await response.json();
+    element.textContent = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD"
+    }).format(Number(data.balance || 0));
+
+  } catch (error) {
+    element.textContent = "Unavailable";
+    console.error(error);
+  }
+}
+
+async function loadDepositHistory() {
+  const container = document.getElementById("depositHistoryList");
+  if (!container) return;
+
+  try {
+    const response = await fetch("/api/deposits/mine", {
+      credentials: "same-origin"
+    });
+
+    if (!response.ok) throw new Error("History loading failed");
+
+    const data = await response.json();
+    container.textContent = "";
+
+    if (!data.deposits || data.deposits.length === 0) {
+      container.textContent = "No deposit requests yet.";
+      return;
+    }
+
+    data.deposits.forEach(deposit => {
+      const item = document.createElement("div");
+      item.className = "transfer-item";
+      item.textContent =
+        `${deposit.amount} ${deposit.currency} — ${deposit.status}`;
+      container.appendChild(item);
+    });
+
+  } catch (error) {
+    container.textContent = "Could not load deposit history.";
+    console.error(error);
+  }
+}
+
+async function loadPaymentMethods() {
+  const select = document.getElementById("paymentMethodSelect");
+  if (!select) return;
+
+  try {
+    const response = await fetch("/api/payment-methods", {
+      credentials: "same-origin"
+    });
+
+    if (!response.ok) throw new Error("Payment methods loading failed");
+
+    const data = await response.json();
+    const methods = Array.isArray(data)
+      ? data
+      : data.methods || [];
+
+    select.replaceChildren();
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Choose payment method";
+    select.appendChild(placeholder);
+
+    methods.forEach(method => {
+      const option = document.createElement("option");
+      option.value = method.id;
+      option.textContent = method.method_name;
+      select.appendChild(option);
+    });
+
+  } catch (error) {
+    console.error(error);
+    select.textContent = "";
+  }
+}
 
 /* SUBMIT DEPOSIT REQUEST TO THE SERVER */
 const depositForm = document.getElementById("depositRequestForm");
@@ -1106,13 +1259,13 @@ if (depositForm && depositMessage) {
       document.getElementById("depositAmount").value
     );
 
-    const currency =
-      document.getElementById("depositCurrency").value;
+    const transactionReference =
+      document.getElementById("depositTransactionReference").value.trim();
 
     const note =
       document.getElementById("depositNote").value.trim();
 
-    depositMessage.className = "message";
+    depositMessage.className = "message show";
     depositMessage.textContent = "Submitting request...";
 
     try {
@@ -1124,7 +1277,8 @@ if (depositForm && depositMessage) {
         },
         body: JSON.stringify({
           amount,
-          currency,
+          currency: "USD",
+          transaction_reference: transactionReference,
           note
         })
       });
@@ -1132,22 +1286,20 @@ if (depositForm && depositMessage) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.error || "Could not submit deposit request."
-        );
+        throw new Error(result.error || "Could not submit request.");
       }
 
       depositMessage.textContent =
-        result.message ||
-        "Deposit request submitted for admin review.";
+        result.message || "Deposit request submitted.";
 
       depositMessage.className = "message show success";
       depositForm.reset();
 
-    } catch (error) {
-      depositMessage.textContent =
-        error.message || "Network error. Please try again.";
+      loadDepositHistory();
+      loadWalletBalance();
 
+    } catch (error) {
+      depositMessage.textContent = error.message;
       depositMessage.className = "message show error";
     }
   });
@@ -1191,7 +1343,7 @@ if (depositForm && depositMessage) {
         "1 USD = 205.00 ETB";
 
       document.getElementById("heroRateNote").textContent =
-        "Fixed reference rates for demo use; not live market rates.";
+        "Fixed reference rates for  use; not live market rates.";
 
       convertCurrency();
       calculateTransferETB();
@@ -1589,9 +1741,11 @@ if (logoutBtn) {
 }
 
 
-    // INITIALIZE APP
-    fetchExchangeRates();
-    renderTransfers();
+   // INITIALIZE APP
+fetchExchangeRates();
+renderTransfers();
+loadWalletBalance();
+loadDepositHistory();
   </script>
 </body>
 </html>
