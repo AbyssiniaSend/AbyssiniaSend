@@ -249,6 +249,29 @@ async function initializeDatabase() {
       reviewed_at TIMESTAMPTZ
     )
   `);
+  
+  // Admin-managed payment instructions
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS payment_settings (
+      id BIGSERIAL PRIMARY KEY,
+      method_name VARCHAR(80) NOT NULL,
+      account_name VARCHAR(120) NOT NULL,
+      account_number VARCHAR(120),
+      payment_link TEXT,
+      instructions TEXT,
+      currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Extend deposit requests safely
+  await pool.query(`
+    ALTER TABLE deposit_requests
+      ADD COLUMN IF NOT EXISTS transaction_reference VARCHAR(120),
+      ADD COLUMN IF NOT EXISTS receipt_url TEXT
+  `);
+
 
   const adminName = (
     process.env.ADMIN_NAME || "AbyssiniaSend Admin"
@@ -805,6 +828,170 @@ app.get("/api/admin/users", requireAdmin, async (req, res, next) => {
     next(error);
   }
 });
+
+/* Get active payment methods: signed-in users */
+app.get("/api/payment-methods", requireLogin, async (req, res, next) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, method_name, account_name, account_number,
+             payment_link, instructions, currency
+      FROM payment_settings
+      WHERE is_active = TRUE
+      ORDER BY id ASC
+    `);
+
+    res.set("Cache-Control", "no-store");
+    return res.json({ paymentMethods: result.rows });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/* Add payment method: administrator only */
+app.post("/api/admin/payment-methods", requireAdmin, async (req, res, next) => {
+  try {
+    const {
+      method_name,
+      account_name,
+      account_number,
+      payment_link,
+      instructions,
+      currency
+    } = req.body || {};
+
+    if (
+      typeof method_name !== "string" ||
+      typeof account_name !== "string" ||
+      !method_name.trim() ||
+      !account_name.trim()
+    ) {
+      return res.status(400).json({
+        error: "Payment method and account name are required."
+      });
+    }
+
+    const cleanCurrency = currency || "USD";
+
+    if (!["USD", "ETB"].includes(cleanCurrency)) {
+      return res.status(400).json({
+        error: "Currency must be USD or ETB."
+      });
+    }
+
+    if (
+      payment_link &&
+      (typeof payment_link !== "string" ||
+       !/^https:\/\//i.test(payment_link))
+    ) {
+      return res.status(400).json({
+        error: "Payment link must use HTTPS."
+      });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO payment_settings
+       (method_name, account_name, account_number,
+        payment_link, instructions, currency)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        method_name.trim(),
+        account_name.trim(),
+        account_number || null,
+        payment_link || null,
+        instructions || null,
+        cleanCurrency
+      ]
+    );
+
+    return res.status(201).json({
+      message: "Payment method added.",
+      paymentMethod: result.rows[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/* Update or deactivate payment method: administrator only */
+app.patch(
+  "/api/admin/payment-methods/:id",
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const {
+        method_name,
+        account_name,
+        account_number,
+        payment_link,
+        instructions,
+        currency,
+        is_active
+      } = req.body || {};
+
+      if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({
+          error: "Invalid payment method ID."
+        });
+      }
+
+      if (currency !== undefined &&
+          !["USD", "ETB"].includes(currency)) {
+        return res.status(400).json({
+          error: "Currency must be USD or ETB."
+        });
+      }
+
+      if (
+        payment_link &&
+        (typeof payment_link !== "string" ||
+         !/^https:\/\//i.test(payment_link))
+      ) {
+        return res.status(400).json({
+          error: "Payment link must use HTTPS."
+        });
+      }
+
+      const result = await pool.query(
+        `UPDATE payment_settings SET
+          method_name = COALESCE($1, method_name),
+          account_name = COALESCE($2, account_name),
+          account_number = COALESCE($3, account_number),
+          payment_link = COALESCE($4, payment_link),
+          instructions = COALESCE($5, instructions),
+          currency = COALESCE($6, currency),
+          is_active = COALESCE($7, is_active),
+          updated_at = NOW()
+         WHERE id = $8
+         RETURNING *`,
+        [
+          method_name ?? null,
+          account_name ?? null,
+          account_number ?? null,
+          payment_link ?? null,
+          instructions ?? null,
+          currency ?? null,
+          typeof is_active === "boolean" ? is_active : null,
+          id
+        ]
+      );
+
+      if (!result.rowCount) {
+        return res.status(404).json({
+          error: "Payment method not found."
+        });
+      }
+
+      return res.json({
+        message: "Payment method updated.",
+        paymentMethod: result.rows[0]
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 /* Submit a deposit request: signed-in users only */
 app.post("/api/deposits", requireLogin, async (req, res, next) => {
