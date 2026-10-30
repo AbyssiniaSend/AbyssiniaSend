@@ -1002,6 +1002,44 @@ app.get(
   }
 );
 // ========================================
+// ADMIN: CHECK ADMIN ACCESS
+// ========================================
+
+app.get("/api/admin/check", requireAdmin, (req, res) => {
+  res.json({
+    success: true,
+    user: safeUser(req.session.user)
+  });
+});
+
+
+// ========================================
+// ADMIN: VIEW REGISTERED USERS
+// ========================================
+
+app.get("/api/admin/users", requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, full_name, email, role, created_at
+       FROM app_users
+       ORDER BY created_at DESC
+       LIMIT 200`
+    );
+
+    res.json({
+      success: true,
+      users: result.rows
+    });
+
+  } catch (error) {
+    console.error("Admin users error:", error);
+
+    res.status(500).json({
+      error: "Could not load registered users."
+    });
+  }
+});
+// ========================================
 // ADMIN: VIEW ALL DEPOSIT REQUESTS
 // ========================================
 
