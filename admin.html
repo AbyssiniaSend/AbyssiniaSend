@@ -110,8 +110,9 @@
 <section class="card">
   <h2>Deposit Requests</h2>
   <p class="muted">
-    Review demo deposit requests. Confirm or Reject changes
-    the request status only; it does not verify real payment.
+   Review demo deposit requests. Confirming credits the
+simulated USD wallet only. It does not verify real payment
+or send actual money..
   </p>
 
   <p id="depositStatus" class="status" role="status">
@@ -119,24 +120,28 @@
   </p>
 
   <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Request ID</th>
-          <th>User</th>
-          <th>Amount</th>
-          <th>Note</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="depositTable">
-        <tr>
-          <td colspan="6">No deposit requests loaded yet.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Request ID</th>
+        <th>User</th>
+        <th>Amount</th>
+        <th>Payment Method</th>
+        <th>Account Name</th>
+        <th>Transaction Reference</th>
+        <th>Note</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody id="depositTable">
+      <tr>
+        <td colspan="9">No deposit requests loaded yet.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 </section>
 
     <section class="card">
@@ -393,7 +398,7 @@ async function loadDeposits() {
     if (deposits.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
-      cell.colSpan = 6;
+     cell.colSpan = 9;
       cell.textContent = "No deposit requests found.";
       row.appendChild(cell);
       depositTable.appendChild(row);
@@ -409,12 +414,16 @@ async function loadDeposits() {
       const amount = String(deposit.amount) + " " +
         (deposit.currency || "");
 
-      [
-        deposit.id,
-        userName + " (" + email + ")",
-        amount,
-        deposit.note || "—",
-        deposit.status || "pending"
+  [
+  deposit.id,
+  userName + " (" + email + ")",
+  amount,
+  deposit.payment_method_name || "—",
+  deposit.payment_account_name || "—",
+  deposit.transaction_reference || "—",
+  deposit.note || "—",
+  deposit.status || "pending"
+
       ].forEach(function(value) {
         const cell = document.createElement("td");
         cell.textContent = String(value);
@@ -512,7 +521,7 @@ async function updateDepositStatus(id, newStatus) {
 
   if (!window.confirm(
     actionName + " deposit request #" + id +
-    "? This changes the request status only, not a real money balance."
+    "? This may credit the simulated USD wallet. It does not verify real payment."
   )) {
     return;
   }
