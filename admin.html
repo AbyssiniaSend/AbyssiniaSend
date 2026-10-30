@@ -66,14 +66,14 @@ button,input,textarea{font:inherit}button{cursor:pointer}
     <header class="topbar"><h1 id="topTitle">Overview</h1><div class="top-right"><span class="admin-chip" id="adminEmail">Checking admin session…</span><button class="logout" id="logoutBtn">Log out ↗</button></div></header>
     <div class="content">
       <section class="page active" id="page-overview">
-        <div class="heading"><div><h2>Good day, Admin</h2><p>Here is the latest activity across your AbyssiniaSend demo platform.</p></div><button class="btn" id="refreshAll">↻ Refresh data</button></div>
+        <div class="heading"><div><h2>Good day, Admin</h2><p>Here is the latest activity across your AbyssiniaSend  platform.</p></div><button class="btn" id="refreshAll">↻ Refresh data</button></div>
         <div class="cards">
           <div class="stat"><div class="stat-top">Registered users <span class="stat-icon">♙</span></div><strong id="statUsers">—</strong><small>Total user accounts</small></div>
           <div class="stat"><div class="stat-top">Pending deposits <span class="stat-icon">＋</span></div><strong id="statDeposits">—</strong><small>Waiting for admin review</small></div>
-          <div class="stat"><div class="stat-top">Pending transfers <span class="stat-icon">⇄</span></div><strong id="statTransfers">—</strong><small>Demo requests awaiting review</small></div>
+          <div class="stat"><div class="stat-top">Pending transfers <span class="stat-icon">⇄</span></div><strong id="statTransfers">—</strong><small>requests awaiting review</small></div>
           <div class="stat"><div class="stat-top">Unread support messages <span class="stat-icon">✉</span></div><strong id="statSupport">—</strong><small>Messages from users</small></div>
         </div>
-        <div class="panel"><h3>Admin workspace</h3><p class="muted" style="font-size:13px;line-height:1.8;margin:0">Use the navigation to review demo deposit and transfer requests, manage the registered-user list, and reply to customer support conversations. All wallet balances and transfer activity shown in AbyssiniaSend are simulated demo records, not real money movement.</p></div>
+        <div class="panel"><h3>Admin workspace</h3><p class="muted" style="font-size:13px;line-height:1.8;margin:0">Use the navigation to review  deposit and transfer requests, manage the registered-user list, and reply to customer support conversations. All wallet balances and transfer activity shown in AbyssiniaSend .</p></div>
       </section>
 
       <section class="page" id="page-support">
@@ -90,12 +90,12 @@ button,input,textarea{font:inherit}button{cursor:pointer}
       </section>
 
       <section class="page" id="page-users">
-        <div class="heading"><div><h2>Registered users</h2><p>View accounts registered on the demo platform.</p></div><button class="btn" id="refreshUsers">↻ Refresh</button></div>
+        <div class="heading"><div><h2>Registered users</h2><p>View accounts registered on the  platform.</p></div><button class="btn" id="refreshUsers">↻ Refresh</button></div>
         <div class="panel"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Created</th></tr></thead><tbody id="usersTable"><tr><td colspan="4">Loading…</td></tr></tbody></table></div></div>
       </section>
 
       <section class="page" id="page-deposits">
-        <div class="heading"><div><h2>Deposit requests</h2><p>Review submitted demo deposit requests. Approval does not verify a real payment.</p></div><button class="btn" id="refreshDeposits">↻ Refresh</button></div>
+        <div class="heading"><div><h2>Deposit requests</h2><p>Review submitted  deposit requests. Approval  verify a real payment.</p></div><button class="btn" id="refreshDeposits">↻ Refresh</button></div>
         <div class="panel"><div class="table-wrap"><table><thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Payment method</th><th>Reference</th><th>Status</th><th>Action</th></tr></thead><tbody id="depositsTable"><tr><td colspan="7">Loading…</td></tr></tbody></table></div></div>
       </section>
 
@@ -161,7 +161,7 @@ async function loadUsers(){
 }
 async function updateStatus(type,id,status){
   const label=status==="confirmed"?"Confirm":"Reject";
-  if(!confirm(`${label} ${type} request #${id}? This updates demo request status only.`))return;
+  if(!confirm(`${label} ${type} request #${id}? This updates  request status only.`))return;
   try{await api(`/api/admin/${type}/${encodeURIComponent(id)}/status`,{method:"PATCH",body:JSON.stringify({status})});type==="deposits"?loadDeposits():loadTransfers();loadOverview();}
   catch(e){alert(e.message)}
 }
