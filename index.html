@@ -797,27 +797,28 @@ th {
           </p>
 
           <br>
+<h3>Deposit History</h3>
 
-          <h3>Deposit History</h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Amount</th>
+        <th>Payment Method</th>
+        <th>Transaction Reference</th>
+        <th>Status</th>
+      </tr>
+    </thead>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Reference</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-
-              <tbody id="depositHistory">
-                <tr>
-                  <td colspan="4">Loading deposits...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <tbody id="depositHistory">
+      <tr>
+        <td colspan="5">Loading deposits...</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+         
 
           <br>
 
@@ -1384,7 +1385,6 @@ document.getElementById("transferForm")
 // ========================================
 // DEPOSIT HISTORY
 // ========================================
-
 async function loadDepositHistory() {
   const tbody = document.getElementById("depositHistory");
 
@@ -1397,7 +1397,7 @@ async function loadDepositHistory() {
       const row = tbody.insertRow();
       const cell = row.insertCell();
 
-      cell.colSpan = 4;
+      cell.colSpan = 5;
       cell.textContent = "No deposit history found.";
 
       return;
@@ -1409,6 +1409,7 @@ async function loadDepositHistory() {
       const values = [
         formatDate(deposit.created_at),
         formatMoney(deposit.amount, deposit.currency),
+        deposit.payment_method_name || "-",
         deposit.transaction_reference || "-",
         deposit.status
       ];
