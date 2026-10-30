@@ -927,6 +927,7 @@ app.post("/api/deposits", requireLogin, async (req, res) => {
     
 
 
+
 // ========================================
 // USER DEPOSIT HISTORY
 // ========================================
@@ -934,12 +935,21 @@ app.post("/api/deposits", requireLogin, async (req, res) => {
 app.get("/api/deposits/mine", requireLogin, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, amount, currency,
-              transaction_reference, note,
-              status, created_at, reviewed_at
-       FROM deposit_requests
-       WHERE user_id = $1
-       ORDER BY created_at DESC
+      `SELECT
+         d.id,
+         d.amount,
+         d.currency,
+         d.transaction_reference,
+         d.note,
+         d.status,
+         d.created_at,
+         d.reviewed_at,
+         p.method_name AS payment_method_name
+       FROM deposit_requests d
+       LEFT JOIN payment_settings p
+         ON p.id = d.payment_method_id
+       WHERE d.user_id = $1
+       ORDER BY d.created_at DESC
        LIMIT 100`,
       [req.session.user.id]
     );
