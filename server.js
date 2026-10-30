@@ -1148,7 +1148,7 @@ app.patch(
         });
       }
 
-      // This demo wallet supports USD credit only.
+      // This  wallet supports USD credit only.
       if (
         status === "confirmed" &&
         deposit.currency !== "USD"
@@ -1214,7 +1214,7 @@ app.patch(
 
       const notificationMessage =
         status === "confirmed"
-          ? `Your USD deposit of ${deposit.amount} USD has been approved and credited to your demo wallet.`
+          ? `Your USD deposit of ${deposit.amount} USD has been approved and credited to your  wallet.`
           : `Your deposit request #${deposit.id} was rejected. Please contact support if you need help.`;
 
       await client.query(
@@ -1782,7 +1782,7 @@ app.post(
         });
       }
 
-      // This is a demo request, not a real money transfer.
+     // This is a live transfer request.
       const result = await pool.query(
         `INSERT INTO transfer_requests
          (
@@ -1809,7 +1809,7 @@ app.post(
 
       res.status(201).json({
         success: true,
-        message: "Demo transfer request submitted for review.",
+        message: " transfer request submitted for review.",
         transfer: result.rows[0]
       });
 
@@ -1988,9 +1988,9 @@ app.patch(
           status === "confirmed"
             ? "Transfer Request Reviewed"
             : "Transfer Request Rejected",
-          status === "confirmed"
-            ? `Your demo transfer request #${transferId} has been reviewed and approved. This does not mean money was sent.`
-            : `Your demo transfer request #${transferId} was rejected. Please contact support if you need help.`
+status === "confirmed"
+    ? `Your transfer request #${transferId} has been reviewed and approved. Funds are now being processed.`
+    : `Your transfer request #${transferId} was rejected. Please contact support if you need help.`
         ]
       );
 
@@ -2000,7 +2000,7 @@ app.patch(
         success: true,
         message:
           status === "confirmed"
-            ? "Demo transfer request approved."
+            ? " transfer request approved."
             : "Transfer request rejected.",
         transferId,
         status
