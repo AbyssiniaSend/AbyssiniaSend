@@ -1291,22 +1291,23 @@ document.getElementById("depositForm")
 
     try {
       const data = await apiRequest("/api/deposits", {
-        method: "POST",
-        body: JSON.stringify({
-  amount,
-  currency,
-  payment_method_id: document.getElementById(
-    "paymentMethodSelect"
-  ).value,
-  transaction_reference: reference,
-  note
-})
+  method: "POST",
+  body: JSON.stringify({
+    amount,
+    currency,
+    payment_method_id: document.getElementById(
+      "paymentMethodSelect"
+    ).value,
+    transaction_reference: reference,
+    note
+  })
+});
 
-      showMessage(
-        "depositMessage",
-        data.message,
-        true
-      );
+showMessage(
+  "depositMessage",
+  data.message,
+  true
+);
 
       this.reset();
 
