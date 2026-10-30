@@ -998,12 +998,18 @@ app.post("/api/deposits", requireLogin, async (req, res, next) => {
   try {
     const amount = Number(req.body?.amount);
     const currency = req.body?.currency;
+
+    const transactionReference =
+      typeof req.body?.transaction_reference === "string"
+        ? req.body.transaction_reference.trim()
+        : "";
+
     const note =
       typeof req.body?.note === "string"
         ? req.body.note.trim()
         : "";
 
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 100000000) {
       return res.status(400).json({
         error: "Enter a valid deposit amount."
       });
@@ -1015,20 +1021,31 @@ app.post("/api/deposits", requireLogin, async (req, res, next) => {
       });
     }
 
+    if (!transactionReference || transactionReference.length > 120) {
+      return res.status(400).json({
+        error: "Enter a valid transaction reference."
+      });
+    }
+
     if (note.length > 200) {
       return res.status(400).json({
         error: "Note must be 200 characters or fewer."
       });
     }
 
-    const userId = req.session.user.id;
-
     const result = await pool.query(
       `INSERT INTO deposit_requests
-         (user_id, amount, currency, note, status)
-       VALUES ($1, $2, $3, $4, 'pending')
-       RETURNING id, amount, currency, note, status, created_at`,
-      [userId, amount, currency, note || null]
+         (user_id, amount, currency, note, transaction_reference, status)
+       VALUES ($1, $2, $3, $4, $5, 'pending')
+       RETURNING id, amount, currency, note,
+                 transaction_reference, status, created_at`,
+      [
+        req.session.user.id,
+        amount,
+        currency,
+        note || null,
+        transactionReference
+      ]
     );
 
     return res.status(201).json({
@@ -1039,35 +1056,6 @@ app.post("/api/deposits", requireLogin, async (req, res, next) => {
     next(error);
   }
 });
-
-/* List transfer requests: administrator only */
-app.get("/api/admin/transfers", requireAdmin, async (req, res, next) => {
-  try {
-    const result = await pool.query(
-      `SELECT
-         tr.id,
-         tr.user_id,
-         u.full_name,
-         u.email,
-         tr.amount,
-         tr.currency,
-         tr.status,
-         tr.created_at,
-         tr.reviewed_at
-       FROM transfer_requests tr
-       JOIN app_users u ON u.id = tr.user_id
-       ORDER BY tr.created_at DESC
-       LIMIT 500`
-    );
-
-    return res.json({
-      transfers: result.rows
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
 /* Confirm or reject a transfer request: administrator only */
 app.patch(
   "/api/admin/transfers/:id/status",
