@@ -1,610 +1,247 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AbyssiniaSend | Admin Dashboard</title>
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #071426;
-      color: #f4f7fb;
-    }
-
-    header {
-      padding: 22px;
-      background: #10243d;
-      border-bottom: 1px solid #29415f;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    h1 { margin: 0; font-size: 23px; }
-    main { max-width: 1100px; margin: 30px auto; padding: 0 16px; }
-
-    .card {
-      background: #10243d;
-      border: 1px solid #29415f;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .muted { color: #b7c6d9; }
-    .status { margin-top: 12px; color: #ffd166; }
-
-    button {
-      padding: 10px 15px;
-      border: 0;
-      border-radius: 7px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .refresh { background: #dce9f8; color: #071426; }
-    .logout { background: #c83d4d; color: white; }
-
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 520px; }
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #29415f;
-      text-align: left;
-    }
-    th { color: #8ec5ff; }
-    .error { color: #ff929c; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AbyssiniaSend | Admin Control Center</title>
+<style>
+:root{--bg:#07111f;--sidebar:#0b1a2d;--panel:#10233a;--panel2:#142b45;--line:#233c59;--gold:#e6b95f;--gold2:#f3d48e;--text:#edf3fa;--muted:#9db0c6;--green:#31c48d;--red:#ef6472;--blue:#76b7ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer}
+.app{min-height:100vh;display:grid;grid-template-columns:250px 1fr}
+.sidebar{background:var(--sidebar);border-right:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:24px}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 22px;border-bottom:1px solid var(--line)}
+.brand-mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f2d28d,#b78331);display:grid;place-items:center;color:#152238;font-weight:900;font-size:21px}
+.brand strong{display:block;font-size:17px;letter-spacing:.2px}.brand small{color:var(--muted);font-size:11px}
+.nav-label{color:#7188a2;font-size:10px;font-weight:800;letter-spacing:1.6px;padding:0 11px;margin:2px 0}
+.nav{display:grid;gap:7px}.nav button{border:1px solid transparent;background:transparent;color:#b9c8d9;text-align:left;padding:12px;border-radius:10px;display:flex;align-items:center;gap:12px;font-weight:650}
+.nav button:hover,.nav button.active{background:#172d47;border-color:#294766;color:#fff}.nav .ico{width:22px;text-align:center;font-size:17px;color:var(--gold)}
+.side-bottom{margin-top:auto}.security{border:1px solid #29445e;background:#10243a;border-radius:12px;padding:14px;color:var(--muted);font-size:12px;line-height:1.5}.security b{color:var(--gold2);display:block;margin-bottom:5px}
+.main{min-width:0}.topbar{height:78px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:#0a1829}
+.topbar h1{font-size:18px;margin:0}.top-right{display:flex;align-items:center;gap:15px}.admin-chip{border:1px solid var(--line);background:#10243a;border-radius:30px;padding:8px 12px;color:var(--muted);font-size:12px}
+.logout{border:1px solid #713b49;background:#351d2a;color:#ffb4bc;border-radius:9px;padding:9px 13px;font-weight:700}
+.content{padding:28px;max-width:1500px;margin:auto}.page{display:none}.page.active{display:block}
+.heading{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin-bottom:22px}.heading h2{margin:0 0 6px;font-size:25px}.heading p{margin:0;color:var(--muted);font-size:13px}
+.btn{border:1px solid var(--line);border-radius:9px;padding:10px 14px;background:#18314d;color:var(--text);font-weight:700}.btn.gold{background:var(--gold);border-color:var(--gold);color:#172235}.btn:disabled{opacity:.5;cursor:not-allowed}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.stat{padding:18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,#132a43,#0e2034)}.stat-top{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.stat-icon{color:var(--gold);font-size:20px}.stat strong{display:block;font-size:27px;margin-top:12px}.stat small{color:#8098b2;font-size:11px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}.panel h3{margin:0 0 15px;font-size:16px}.muted{color:var(--muted)}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:13px 11px;border-bottom:1px solid var(--line);font-size:12px}th{color:#8fa8c3;font-size:10px;text-transform:uppercase;letter-spacing:.8px}td{color:#dce6f1}
+.status{display:inline-block;padding:5px 9px;border-radius:30px;font-size:10px;font-weight:800;text-transform:capitalize;background:#26374a;color:#d5e2ef}.status.pending{background:#47391e;color:#f4d28b}.status.confirmed{background:#123d35;color:#80e0bd}.status.rejected{background:#492832;color:#ff9ba5}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.mini{padding:7px 9px;border:0;border-radius:7px;font-size:11px;font-weight:800}.mini.yes{background:#1d684f;color:#d8fff0}.mini.no{background:#71323d;color:#ffe1e4}
+.support-layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px;height:min(690px,calc(100vh - 190px));min-height:500px}
+.chat-list,.chat-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;min-height:0;overflow:hidden}
+.chat-list-head{padding:17px;border-bottom:1px solid var(--line)}.chat-list-head h3{margin:0 0 12px;font-size:15px}
+.search{width:100%;border:1px solid var(--line);border-radius:9px;background:#091a2d;color:var(--text);padding:11px 12px;outline:none}.search:focus,textarea:focus{border-color:var(--gold)}
+.conversations{overflow:auto;height:calc(100% - 88px)}.conversation{width:100%;border:0;border-bottom:1px solid #1d344d;background:transparent;color:inherit;text-align:left;padding:14px;display:block}.conversation:hover,.conversation.selected{background:#18314c}.conv-row{display:flex;justify-content:space-between;gap:8px;align-items:center}.conv-name{font-weight:750;font-size:13px}.conv-time{font-size:10px;color:#8098b2}.conv-preview{font-size:11px;color:var(--muted);margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.unread{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:20px;background:var(--gold);color:#172235;font-size:10px;font-weight:900}
+.chat-box{display:flex;flex-direction:column}.chat-head{padding:17px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.chat-user{font-weight:800}.chat-email{font-size:11px;color:var(--muted);margin-top:4px}
+.messages{padding:20px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:12px;background:radial-gradient(ellipse at top right,#172d461c,transparent 55%)}
+.empty{margin:auto;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
+.bubble-wrap{max-width:min(78%,560px);display:flex;flex-direction:column;gap:5px}.bubble-wrap.user{align-self:flex-start}.bubble-wrap.admin{align-self:flex-end;align-items:flex-end}
+.bubble{padding:11px 14px;border-radius:13px;background:#1a3552;color:#e7eff8;font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.bubble-wrap.admin .bubble{background:#725627;color:#fff4d8;border-bottom-right-radius:4px}.bubble-wrap.user .bubble{border-bottom-left-radius:4px}
+.msg-meta{font-size:10px;color:#8298b1}.reply{padding:14px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:flex-end}.reply textarea{resize:vertical;min-height:48px;max-height:130px;flex:1;border:1px solid var(--line);border-radius:10px;background:#091a2d;color:var(--text);padding:12px;outline:none}
+.notice{font-size:11px;color:var(--muted);margin-top:8px}.error{color:#ff9ba5}.loading{color:var(--muted);padding:20px;text-align:center;font-size:12px}
+@media(max-width:1050px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.app{grid-template-columns:215px 1fr}.support-layout{grid-template-columns:280px minmax(0,1fr)}}
+@media(max-width:760px){.app{grid-template-columns:1fr}.sidebar{padding:12px;gap:12px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:4px 5px 12px}.nav-label,.security{display:none}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;padding:9px 11px;font-size:12px}.side-bottom{display:none}.topbar{height:62px;padding:0 15px}.content{padding:17px 13px}.heading h2{font-size:21px}.cards{gap:9px}.stat{padding:13px}.stat strong{font-size:22px}.support-layout{height:auto;min-height:0;grid-template-columns:1fr}.chat-list{height:240px}.conversations{height:155px}.chat-box{height:510px}.heading{align-items:flex-start;flex-direction:column}.admin-chip{display:none}}
+</style>
 </head>
 <body>
-  <header>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">A</div><div><strong>Abyssinia<span style="color:var(--gold)">Send</span></strong><small>ADMIN CONTROL CENTER</small></div></div>
     <div>
-      <h1>AbyssiniaSend Admin</h1>
-      <p class="muted">Administration Dashboard</p>
+      <div class="nav-label">WORKSPACE</div>
+      <nav class="nav">
+        <button class="active" data-page="overview"><span class="ico">▦</span>Overview</button>
+        <button data-page="support"><span class="ico">✉</span>Support Chat <span id="navUnread" class="unread" style="margin-left:auto;display:none">0</span></button>
+        <button data-page="users"><span class="ico">♙</span>Users</button>
+        <button data-page="deposits"><span class="ico">＋</span>Deposit Requests</button>
+        <button data-page="transfers"><span class="ico">⇄</span>Transfer Requests</button>
+      </nav>
     </div>
-    <button class="logout" id="logoutBtn">Logout</button>
-  </header>
+    <div class="side-bottom"><div class="security"><b>◆ Secure administration</b>Admin-only workspace. Support replies are delivered to the user's account inbox.</div></div>
+  </aside>
 
-  <main>
-    <section class="card">
-      <h2>Admin Account</h2>
-      <p id="adminInfo" class="muted">Checking admin access...</p>
-      <p id="status" class="status" role="status">Please wait...</p>
-    </section>
-<section class="card">
-  <h2>Transfer Requests</h2>
-  <p class="muted">
-    Review each request and choose Confirm or Reject.
-  </p>
+  <main class="main">
+    <header class="topbar"><h1 id="topTitle">Overview</h1><div class="top-right"><span class="admin-chip" id="adminEmail">Checking admin session…</span><button class="logout" id="logoutBtn">Log out ↗</button></div></header>
+    <div class="content">
+      <section class="page active" id="page-overview">
+        <div class="heading"><div><h2>Good day, Admin</h2><p>Here is the latest activity across your AbyssiniaSend demo platform.</p></div><button class="btn" id="refreshAll">↻ Refresh data</button></div>
+        <div class="cards">
+          <div class="stat"><div class="stat-top">Registered users <span class="stat-icon">♙</span></div><strong id="statUsers">—</strong><small>Total user accounts</small></div>
+          <div class="stat"><div class="stat-top">Pending deposits <span class="stat-icon">＋</span></div><strong id="statDeposits">—</strong><small>Waiting for admin review</small></div>
+          <div class="stat"><div class="stat-top">Pending transfers <span class="stat-icon">⇄</span></div><strong id="statTransfers">—</strong><small>Demo requests awaiting review</small></div>
+          <div class="stat"><div class="stat-top">Unread support messages <span class="stat-icon">✉</span></div><strong id="statSupport">—</strong><small>Messages from users</small></div>
+        </div>
+        <div class="panel"><h3>Admin workspace</h3><p class="muted" style="font-size:13px;line-height:1.8;margin:0">Use the navigation to review demo deposit and transfer requests, manage the registered-user list, and reply to customer support conversations. All wallet balances and transfer activity shown in AbyssiniaSend are simulated demo records, not real money movement.</p></div>
+      </section>
 
-  <p id="transferStatus" class="status" role="status">
-    Loading transfer requests...
-  </p>
+      <section class="page" id="page-support">
+        <div class="heading"><div><h2>Support inbox</h2><p>Read user messages and reply directly from the admin workspace.</p></div><button class="btn" id="refreshSupport">↻ Refresh inbox</button></div>
+        <div class="support-layout">
+          <div class="chat-list"><div class="chat-list-head"><h3>Conversations <span id="conversationCount" class="muted"></span></h3><input class="search" id="conversationSearch" placeholder="Search name or email…"></div><div class="conversations" id="conversationList"><div class="loading">Loading conversations…</div></div></div>
+          <div class="chat-box">
+            <div class="chat-head"><div><div class="chat-user" id="chatUser">Select a conversation</div><div class="chat-email" id="chatEmail">Choose a user from the inbox</div></div><span class="status" id="chatState">No chat selected</span></div>
+            <div class="messages" id="messageList"><div class="empty">✉<br><br>Select a conversation to view messages.</div></div>
+            <form class="reply" id="replyForm"><textarea id="replyText" maxlength="2000" placeholder="Write your reply…" disabled required></textarea><button class="btn gold" id="sendReply" disabled>Send ↗</button></form>
+          </div>
+        </div>
+        <p class="notice" id="supportNotice">New messages are checked when you refresh the inbox. Conversation list refreshes automatically.</p>
+      </section>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Request ID</th>
-          <th>User</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="transferTable">
-        <tr>
-          <td colspan="5">No requests loaded yet.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-    
-<section class="card">
-  <h2>Deposit Requests</h2>
-  <p class="muted">
-   Review demo deposit requests. Confirming credits the
-simulated USD wallet only. It does not verify real payment
-or send actual money..
-  </p>
+      <section class="page" id="page-users">
+        <div class="heading"><div><h2>Registered users</h2><p>View accounts registered on the demo platform.</p></div><button class="btn" id="refreshUsers">↻ Refresh</button></div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Created</th></tr></thead><tbody id="usersTable"><tr><td colspan="4">Loading…</td></tr></tbody></table></div></div>
+      </section>
 
-  <p id="depositStatus" class="status" role="status">
-    Loading deposit requests...
-  </p>
+      <section class="page" id="page-deposits">
+        <div class="heading"><div><h2>Deposit requests</h2><p>Review submitted demo deposit requests. Approval does not verify a real payment.</p></div><button class="btn" id="refreshDeposits">↻ Refresh</button></div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Payment method</th><th>Reference</th><th>Status</th><th>Action</th></tr></thead><tbody id="depositsTable"><tr><td colspan="7">Loading…</td></tr></tbody></table></div></div>
+      </section>
 
-  <div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th>Request ID</th>
-        <th>User</th>
-        <th>Amount</th>
-        <th>Payment Method</th>
-        <th>Account Name</th>
-        <th>Transaction Reference</th>
-        <th>Note</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-
-    <tbody id="depositTable">
-      <tr>
-        <td colspan="9">No deposit requests loaded yet.</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-</section>
-
-    <section class="card">
-      <h2>Registered Users</h2>
-      <p class="muted">Read-only user list. No accounts are changed here.</p>
-      <button class="refresh" id="refreshBtn">Refresh Users</button>
-      <p id="usersStatus" class="status" role="status"></p>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-            </tr>
-          </thead>
-          <tbody id="usersTable">
-            <tr><td colspan="3">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      <section class="page" id="page-transfers">
+        <div class="heading"><div><h2>Transfer requests</h2><p>Review simulated transfer requests. Confirming does not send real money.</p></div><button class="btn" id="refreshTransfers">↻ Refresh</button></div>
+        <div class="panel"><div class="table-wrap"><table><thead><tr><th>ID</th><th>User</th><th>Recipient</th><th>Amount</th><th>Payout method</th><th>Status</th><th>Action</th></tr></thead><tbody id="transfersTable"><tr><td colspan="7">Loading…</td></tr></tbody></table></div></div>
+      </section>
+    </div>
   </main>
-
+</div>
 
 <script>
-  const statusEl = document.getElementById("status");
-  const adminInfo = document.getElementById("adminInfo");
-  const usersStatus = document.getElementById("usersStatus");
-  const usersTable = document.getElementById("usersTable");
-  const transferStatus = document.getElementById("transferStatus");
-  const transferTable = document.getElementById("transferTable");
-const depositStatus = document.getElementById("depositStatus");
-const depositTable = document.getElementById("depositTable");
-  async function checkAdmin() {
-    try {
-      const response = await fetch("/api/admin/check", {
-        credentials: "same-origin",
-        cache: "no-store"
-      });
+const $ = id => document.getElementById(id);
+let selectedUserId = null;
+let conversations = [];
+let refreshTimer = null;
 
-      if (response.status === 401) {
-        window.location.replace("/login");
-        return false;
-      }
+async function api(url, options={}) {
+  const response = await fetch(url, {credentials:"same-origin", cache:"no-store", ...options,
+    headers:{"Content-Type":"application/json", ...(options.headers||{})}});
+  if (response.status === 401) { location.replace("/login"); throw new Error("Your session expired."); }
+  const data = await response.json().catch(()=>({}));
+  if (!response.ok) throw new Error(data.error || "Request failed.");
+  return data;
+}
+function escapeText(value){return String(value ?? "");}
+function dateText(value){if(!value)return "—";const d=new Date(value);return Number.isNaN(d.getTime())?"—":d.toLocaleString();}
+function statusTag(value){const s=escapeText(value||"pending").toLowerCase();return `<span class="status ${s}">${s}</span>`;}
+function showPage(name){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  $("page-"+name).classList.add("active");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
+  $("topTitle").textContent=({overview:"Overview",support:"Support Chat",users:"Registered Users",deposits:"Deposit Requests",transfers:"Transfer Requests"})[name]||name;
+  if(name==="support") loadConversations();
+  if(name==="users") loadUsers();
+  if(name==="deposits") loadDeposits();
+  if(name==="transfers") loadTransfers();
+}
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
 
-      if (response.status === 403) {
-        statusEl.textContent = "Access denied: Admin permission required.";
-        adminInfo.textContent = "This account is not an administrator.";
-        usersTable.replaceChildren();
-        transferTable.replaceChildren();
-        return false;
-      }
-
-      if (!response.ok) {
-        throw new Error("Could not verify admin access.");
-      }
-
-      const data = await response.json();
-      adminInfo.textContent =
-        "Signed in as " + (data.user?.email || "Admin");
-      statusEl.textContent = "Admin access verified.";
-      return true;
-    } catch (error) {
-      statusEl.textContent = "Could not connect to the server.";
-      return false;
-    }
-  }
-
-  async function loadUsers() {
-    usersStatus.textContent = "Loading users...";
-    usersTable.replaceChildren();
-
-    try {
-      const response = await fetch("/api/admin/users", {
-        credentials: "same-origin",
-        cache: "no-store"
-      });
-
-      if (response.status === 401) {
-        window.location.replace("/login");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to load users.");
-      }
-
-      const data = await response.json();
-      const users = Array.isArray(data.users) ? data.users : [];
-
-      if (users.length === 0) {
-        const row = document.createElement("tr");
-        const cell = document.createElement("td");
-        cell.colSpan = 3;
-        cell.textContent = "No users found.";
-        row.appendChild(cell);
-        usersTable.appendChild(row);
-        usersStatus.textContent = "No registered users.";
-        return;
-      }
-
-      users.forEach(function(user) {
-        const row = document.createElement("tr");
-
-        [
-          user.fullName || user.full_name || "—",
-          user.email || "—",
-          user.role || "user"
-        ].forEach(function(value) {
-          const cell = document.createElement("td");
-          cell.textContent = String(value);
-          row.appendChild(cell);
-        });
-
-        usersTable.appendChild(row);
-      });
-
-      usersStatus.textContent = "Users loaded successfully.";
-    } catch (error) {
-      usersStatus.textContent = "Could not load users. Check the server.";
-    }
-  }
-
-  async function loadTransfers() {
-    transferStatus.textContent = "Loading transfer requests...";
-    transferTable.replaceChildren();
-
-    try {
-      const response = await fetch("/api/admin/transfers", {
-        credentials: "same-origin",
-        cache: "no-store"
-      });
-
-      if (response.status === 401) {
-        window.location.replace("/login");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to load transfer requests.");
-      }
-
-      const data = await response.json();
-      const transfers = data.transfers;
-
-      if (!Array.isArray(transfers)) {
-        throw new Error("Unexpected transfer response.");
-      }
-
-      if (transfers.length === 0) {
-        const row = document.createElement("tr");
-        const cell = document.createElement("td");
-        cell.colSpan = 5;
-        cell.textContent = "No transfer requests found.";
-        row.appendChild(cell);
-        transferTable.appendChild(row);
-        transferStatus.textContent = "No requests to review.";
-        return;
-      }
-
-      transfers.forEach(function(transfer) {
-        const row = document.createElement("tr");
-
-        const values = [
-          transfer.id,
-          (transfer.full_name || "Unknown") +
-            " (" + (transfer.email || "—") + ")",
-          String(transfer.amount) + " " + (transfer.currency || "ETB"),
-          transfer.status || "pending"
-        ];
-
-        values.forEach(function(value) {
-          const cell = document.createElement("td");
-          cell.textContent = String(value);
-          row.appendChild(cell);
-        });
-
-        const actionCell = document.createElement("td");
-
-        if (transfer.status === "pending") {
-          const confirmBtn = document.createElement("button");
-          confirmBtn.textContent = "Confirm";
-          confirmBtn.style.background = "#238636";
-          confirmBtn.style.color = "#ffffff";
-          confirmBtn.style.marginRight = "6px";
-
-          confirmBtn.addEventListener("click", function() {
-            updateTransferStatus(transfer.id, "confirmed");
-          });
-
-          const rejectBtn = document.createElement("button");
-          rejectBtn.textContent = "Reject";
-          rejectBtn.style.background = "#c83d4d";
-          rejectBtn.style.color = "#ffffff";
-
-          rejectBtn.addEventListener("click", function() {
-            updateTransferStatus(transfer.id, "rejected");
-          });
-
-          actionCell.append(confirmBtn, rejectBtn);
-        } else {
-          actionCell.textContent = "Already reviewed";
-        }
-
-        row.appendChild(actionCell);
-        transferTable.appendChild(row);
-      });
-
-      transferStatus.textContent =
-        "Transfer requests loaded successfully.";
-    } catch (error) {
-      transferStatus.textContent =
-        "Could not load transfer requests. Check Render logs.";
-    }
-  }
-  
-async function loadDeposits() {
-  depositStatus.textContent = "Loading deposit requests...";
-  depositTable.replaceChildren();
-
-  try {
-    const response = await fetch("/api/admin/deposits", {
-      credentials: "same-origin",
-      cache: "no-store"
-    });
-
-    if (response.status === 401) {
-      window.location.replace("/login");
-      return;
-    }
-
-    if (response.status === 403) {
-      depositStatus.textContent =
-        "Access denied: Admin permission required.";
-      return;
-    }
-
-    const data = await response.json().catch(function() {
-      return {};
-    });
-
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to load deposit requests.");
-    }
-
-    const deposits = data.deposits;
-
-    if (!Array.isArray(deposits)) {
-      throw new Error("Unexpected deposit response.");
-    }
-
-    if (deposits.length === 0) {
-      const row = document.createElement("tr");
-      const cell = document.createElement("td");
-     cell.colSpan = 9;
-      cell.textContent = "No deposit requests found.";
-      row.appendChild(cell);
-      depositTable.appendChild(row);
-      depositStatus.textContent = "No deposit requests to review.";
-      return;
-    }
-
-    deposits.forEach(function(deposit) {
-      const row = document.createElement("tr");
-
-      const userName = deposit.full_name || "Unknown";
-      const email = deposit.email || "—";
-      const amount = String(deposit.amount) + " " +
-        (deposit.currency || "");
-
-  [
-  deposit.id,
-  userName + " (" + email + ")",
-  amount,
-  deposit.payment_method_name || "—",
-  deposit.payment_account_name || "—",
-  deposit.transaction_reference || "—",
-  deposit.note || "—",
-  deposit.status || "pending"
-
-      ].forEach(function(value) {
-        const cell = document.createElement("td");
-        cell.textContent = String(value);
-        row.appendChild(cell);
-      });
-
-      const actionCell = document.createElement("td");
-
-      if (deposit.status === "pending") {
-        const confirmBtn = document.createElement("button");
-        confirmBtn.textContent = "Confirm";
-        confirmBtn.style.background = "#238636";
-        confirmBtn.style.color = "#ffffff";
-        confirmBtn.style.marginRight = "6px";
-
-        confirmBtn.addEventListener("click", function() {
-          updateDepositStatus(deposit.id, "confirmed");
-        });
-
-        const rejectBtn = document.createElement("button");
-        rejectBtn.textContent = "Reject";
-        rejectBtn.style.background = "#c83d4d";
-        rejectBtn.style.color = "#ffffff";
-
-        rejectBtn.addEventListener("click", function() {
-          updateDepositStatus(deposit.id, "rejected");
-        });
-
-        actionCell.append(confirmBtn, rejectBtn);
-      } else {
-        actionCell.textContent = "Already reviewed";
-      }
-
-      row.appendChild(actionCell);
-      depositTable.appendChild(row);
-    });
-
-    depositStatus.textContent = "Deposit requests loaded successfully.";
-  } catch (error) {
-    depositStatus.textContent =
-      error.message || "Could not load deposit requests.";
+async function checkAdmin(){
+  const data=await api("/api/admin/check");
+  $("adminEmail").textContent=data.user?.email || "Administrator";
+}
+async function loadOverview(){
+  const d=await api("/api/admin/dashboard");
+  $("statUsers").textContent=d.users?.total ?? 0;
+  $("statDeposits").textContent=d.deposits?.pending ?? 0;
+  $("statTransfers").textContent=d.transfers?.pending ?? 0;
+  $("statSupport").textContent=d.support?.unread ?? d.support?.unread_support_messages ?? "—";
+  if($("statSupport").textContent==="—") {
+    const c=await api("/api/admin/support/conversations");
+    $("statSupport").textContent=c.conversations?.reduce((n,x)=>n+Number(x.unread_count||0),0) ?? 0;
   }
 }
-
-
-  async function updateTransferStatus(id, newStatus) {
-    const actionName = newStatus === "confirmed" ? "Confirm" : "Reject";
-
-    if (!window.confirm(
-      actionName + " request #" + id + "? This changes the request status only."
-    )) {
-      return;
-    }
-
-    transferStatus.textContent = "Updating request #" + id + "...";
-
-    try {
-      const response = await fetch(
-        "/api/admin/transfers/" + encodeURIComponent(id) + "/status",
-        {
-          method: "PATCH",
-          credentials: "same-origin",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ status: newStatus })
-        }
-      );
-
-      const data = await response.json().catch(function() {
-        return {};
-      });
-
-      if (response.status === 401) {
-        window.location.replace("/login");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || "Could not update request.");
-      }
-
-      transferStatus.textContent =
-        "Request #" + id + " " + newStatus + " successfully.";
-
-      await loadTransfers();
-    } catch (error) {
-      transferStatus.textContent =
-        error.message || "Could not update request. Please try again.";
-    }
-  }
-
-async function updateDepositStatus(id, newStatus) {
-  const actionName = newStatus === "confirmed" ? "Confirm" : "Reject";
-
-  if (!window.confirm(
-    actionName + " deposit request #" + id +
-    "? This may credit the simulated USD wallet. It does not verify real payment."
-  )) {
-    return;
-  }
-
-  depositStatus.textContent = "Updating deposit request #" + id + "...";
-
-  try {
-    const response = await fetch(
-      "/api/admin/deposits/" + encodeURIComponent(id) + "/status",
-      {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ status: newStatus })
-      }
-    );
-
-    const data = await response.json().catch(function() {
-      return {};
-    });
-
-    if (response.status === 401) {
-      window.location.replace("/login");
-      return;
-    }
-
-    if (!response.ok) {
-      throw new Error(data.error || "Could not update deposit request.");
-    }
-
-    depositStatus.textContent =
-      "Deposit request #" + id + " " + newStatus + " successfully.";
-
-    await loadDeposits();
-  } catch (error) {
-    depositStatus.textContent =
-      error.message || "Could not update deposit request. Try again.";
-  }
+async function loadUsers(){
+  $("usersTable").innerHTML='<tr><td colspan="4">Loading…</td></tr>';
+  try{const d=await api("/api/admin/users");const rows=d.users||[];
+    $("usersTable").replaceChildren();
+    if(!rows.length){$("usersTable").innerHTML='<tr><td colspan="4">No registered users found.</td></tr>';return;}
+    rows.forEach(u=>{const tr=document.createElement("tr");[u.full_name||u.fullName||"—",u.email||"—",u.role||"user",dateText(u.created_at)].forEach(v=>{const td=document.createElement("td");td.textContent=escapeText(v);tr.appendChild(td)});$("usersTable").appendChild(tr)});
+  }catch(e){$("usersTable").innerHTML=`<tr><td colspan="4" class="error">${escapeText(e.message)}</td></tr>`}
+}
+async function updateStatus(type,id,status){
+  const label=status==="confirmed"?"Confirm":"Reject";
+  if(!confirm(`${label} ${type} request #${id}? This updates demo request status only.`))return;
+  try{await api(`/api/admin/${type}/${encodeURIComponent(id)}/status`,{method:"PATCH",body:JSON.stringify({status})});type==="deposits"?loadDeposits():loadTransfers();loadOverview();}
+  catch(e){alert(e.message)}
+}
+function actionButtons(type,id,status){if(status!=="pending")return "Reviewed";const wrap=document.createElement("div");wrap.className="actions";[["Confirm","confirmed","yes"],["Reject","rejected","no"]].forEach(([label,val,cls])=>{const b=document.createElement("button");b.className="mini "+cls;b.textContent=label;b.onclick=()=>updateStatus(type,id,val);wrap.appendChild(b)});return wrap}
+async function loadDeposits(){
+  $("depositsTable").innerHTML='<tr><td colspan="7">Loading…</td></tr>';
+  try{const d=await api("/api/admin/deposits");$("depositsTable").replaceChildren();const rows=d.deposits||[];
+    if(!rows.length){$("depositsTable").innerHTML='<tr><td colspan="7">No deposit requests.</td></tr>';return}
+    rows.forEach(x=>{const tr=document.createElement("tr");[x.id,`${x.full_name||"Unknown"} (${x.email||"—"})`,`${x.amount} ${x.currency||""}`,x.payment_method_name||"—",x.transaction_reference||"—"].forEach(v=>{const td=document.createElement("td");td.textContent=escapeText(v);tr.appendChild(td)});const st=document.createElement("td");st.innerHTML=statusTag(x.status);tr.appendChild(st);const ac=document.createElement("td");const buttons=actionButtons("deposits",x.id,x.status);if(typeof buttons==="string")ac.textContent=buttons;else ac.appendChild(buttons);tr.appendChild(ac);$("depositsTable").appendChild(tr)});
+  }catch(e){$("depositsTable").innerHTML=`<tr><td colspan="7" class="error">${escapeText(e.message)}</td></tr>`}
+}
+async function loadTransfers(){
+  $("transfersTable").innerHTML='<tr><td colspan="7">Loading…</td></tr>';
+  try{const d=await api("/api/admin/transfers");$("transfersTable").replaceChildren();const rows=d.transfers||[];
+    if(!rows.length){$("transfersTable").innerHTML='<tr><td colspan="7">No transfer requests.</td></tr>';return}
+    rows.forEach(x=>{const tr=document.createElement("tr");[x.id,`${x.full_name||"Unknown"} (${x.email||"—"})`,x.recipient_name||"—",`${x.amount} ${x.currency||""}`,x.payout_method||"—"].forEach(v=>{const td=document.createElement("td");td.textContent=escapeText(v);tr.appendChild(td)});const st=document.createElement("td");st.innerHTML=statusTag(x.status);tr.appendChild(st);const ac=document.createElement("td");const buttons=actionButtons("transfers",x.id,x.status);if(typeof buttons==="string")ac.textContent=buttons;else ac.appendChild(buttons);tr.appendChild(ac);$("transfersTable").appendChild(tr)});
+  }catch(e){$("transfersTable").innerHTML=`<tr><td colspan="7" class="error">${escapeText(e.message)}</td></tr>`}
 }
 
-  document.getElementById("refreshBtn").addEventListener(
-    "click",
-    async function() {
-      if (await checkAdmin()) {
-        await loadUsers();
-      }
-    }
-  );
-
-  document.getElementById("logoutBtn").addEventListener(
-    "click",
-    async function() {
-      try {
-        const response = await fetch("/api/logout", {
-          method: "POST",
-          credentials: "same-origin"
-        });
-
-        if (response.ok) {
-          window.location.replace("/login");
-        } else {
-          statusEl.textContent = "Logout failed. Please try again.";
-        }
-      } catch (error) {
-        statusEl.textContent = "Could not connect to the server.";
-      }
-    }
-  );
-
-  
-(async function init() {
-  if (await checkAdmin()) {
-    await Promise.all([
-      loadUsers(),
-      loadTransfers(),
-      loadDeposits()
-    ]);
-  }
+function renderConversations(){
+  const q=$("conversationSearch").value.trim().toLowerCase();
+  const filtered=conversations.filter(c=>`${c.full_name||""} ${c.email||""} ${c.last_message||""}`.toLowerCase().includes(q));
+  $("conversationCount").textContent=`(${filtered.length})`;
+  $("conversationList").replaceChildren();
+  if(!filtered.length){$("conversationList").innerHTML='<div class="loading">No conversations found.</div>';return}
+  filtered.forEach(c=>{
+    const b=document.createElement("button");b.className="conversation"+(String(c.user_id)===String(selectedUserId)?" selected":"");
+    const row=document.createElement("div");row.className="conv-row";
+    const name=document.createElement("span");name.className="conv-name";name.textContent=c.full_name||"User";
+    row.appendChild(name);
+    if(Number(c.unread_count)>0){const badge=document.createElement("span");badge.className="unread";badge.textContent=c.unread_count;row.appendChild(badge)}
+    const preview=document.createElement("div");preview.className="conv-preview";preview.textContent=(c.last_sender==="admin"?"You: ":"")+ (c.last_message||"No message");
+    const time=document.createElement("div");time.className="conv-time";time.textContent=dateText(c.last_message_at);
+    b.append(row,preview,time);b.onclick=()=>openConversation(c.user_id);$("conversationList").appendChild(b);
+  });
+  const unread=conversations.reduce((n,c)=>n+Number(c.unread_count||0),0);
+  $("navUnread").textContent=unread;$("navUnread").style.display=unread?"inline-grid":"none";
+}
+async function loadConversations(){
+  try{const d=await api("/api/admin/support/conversations");conversations=d.conversations||[];renderConversations();
+    if(selectedUserId && !conversations.some(c=>String(c.user_id)===String(selectedUserId))){selectedUserId=null;resetChat()}
+    if(selectedUserId){const active=conversations.find(c=>String(c.user_id)===String(selectedUserId));if(active)await openConversation(selectedUserId,true)}
+  }catch(e){$("conversationList").innerHTML=`<div class="loading error">${escapeText(e.message)}</div>`}
+}
+async function openConversation(userId,silent=false){
+  selectedUserId=userId;renderConversations();
+  if(!silent)$("messageList").innerHTML='<div class="loading">Loading messages…</div>';
+  try{const d=await api(`/api/admin/support/${encodeURIComponent(userId)}/messages`);
+    $("chatUser").textContent=d.user?.full_name||"User";$("chatEmail").textContent=d.user?.email||"";
+    $("chatState").textContent="Conversation open";$("replyText").disabled=false;$("sendReply").disabled=false;
+    $("messageList").replaceChildren();
+    const messages=d.messages||[];
+    if(!messages.length){$("messageList").innerHTML='<div class="empty">No messages in this conversation yet.</div>'}
+    messages.forEach(m=>{
+      const wrap=document.createElement("div");wrap.className="bubble-wrap "+(m.sender_role==="admin"?"admin":"user");
+      const bubble=document.createElement("div");bubble.className="bubble";bubble.textContent=m.message||"";
+      const meta=document.createElement("div");meta.className="msg-meta";meta.textContent=(m.sender_role==="admin"?"You":"User")+" · "+dateText(m.created_at);
+      wrap.append(bubble,meta);$("messageList").appendChild(wrap);
+    });
+    $("messageList").scrollTop=$("messageList").scrollHeight;
+    const c=conversations.find(x=>String(x.user_id)===String(userId));if(c)c.unread_count=0;renderConversations();
+  }catch(e){$("messageList").innerHTML=`<div class="empty error">${escapeText(e.message)}</div>`}
+}
+function resetChat(){$("chatUser").textContent="Select a conversation";$("chatEmail").textContent="Choose a user from the inbox";$("chatState").textContent="No chat selected";$("messageList").innerHTML='<div class="empty">✉<br><br>Select a conversation to view messages.</div>';$("replyText").disabled=true;$("sendReply").disabled=true}
+$("replyForm").addEventListener("submit",async e=>{
+  e.preventDefault();if(!selectedUserId)return;const message=$("replyText").value.trim();if(!message)return;
+  $("sendReply").disabled=true;
+  try{await api(`/api/admin/support/${encodeURIComponent(selectedUserId)}/reply`,{method:"POST",body:JSON.stringify({message})});$("replyText").value="";await openConversation(selectedUserId,true);await loadConversations();$("supportNotice").textContent="Reply sent successfully. The user has been notified."}
+  catch(err){$("supportNotice").textContent=err.message;$("supportNotice").classList.add("error")}
+  finally{$("sendReply").disabled=false}
+});
+$("conversationSearch").addEventListener("input",renderConversations);
+$("refreshSupport").onclick=loadConversations;$("refreshUsers").onclick=loadUsers;$("refreshDeposits").onclick=loadDeposits;$("refreshTransfers").onclick=loadTransfers;
+$("refreshAll").onclick=async()=>{await Promise.all([loadOverview(),loadConversations()])};
+$("logoutBtn").onclick=async()=>{try{await fetch("/api/logout",{method:"POST",credentials:"same-origin"});location.replace("/login")}catch(e){alert("Could not log out. Please try again.")}};
+(async function init(){
+  try{await checkAdmin();await Promise.all([loadOverview(),loadConversations()]);}
+  catch(e){$("adminEmail").textContent=e.message;}
+  refreshTimer=setInterval(()=>{loadConversations();if($("page-overview").classList.contains("active"))loadOverview()},20000);
 })();
-
 </script>
-
 </body>
 </html>
