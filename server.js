@@ -272,7 +272,12 @@ async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
-
+  await pool.query(`
+    ALTER TABLE deposit_requests
+    ADD COLUMN IF NOT EXISTS payment_method_id BIGINT
+    REFERENCES payment_settings(id)
+    ON DELETE SET NULL
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wallet_accounts (
       id BIGSERIAL PRIMARY KEY,
@@ -789,6 +794,7 @@ app.get("/api/payment-methods", requireLogin, async (req, res) => {
 
 
 // ========================================
+// ========================================
 // CREATE DEPOSIT REQUEST
 // ========================================
 
@@ -799,11 +805,14 @@ app.post("/api/deposits", requireLogin, async (req, res) => {
     const {
       amount,
       currency,
+      payment_method_id,
       transaction_reference,
       note
     } = req.body;
 
     const depositAmount = Number(amount);
+    const methodId = Number(payment_method_id);
+
     const depositCurrency =
       typeof currency === "string"
         ? currency.trim().toUpperCase()
@@ -835,30 +844,64 @@ app.post("/api/deposits", requireLogin, async (req, res) => {
       });
     }
 
-    if (reference.length > 150) {
+    if (
+      !Number.isSafeInteger(methodId) ||
+      methodId <= 0
+    ) {
       return res.status(400).json({
-        error: "Transaction reference is too long."
+        error: "Please select a valid payment method."
       });
     }
 
-    if (!reference) {
+    if (!reference || reference.length > 150) {
       return res.status(400).json({
-        error: "Enter your payment transaction reference."
+        error: "Enter a valid transaction reference."
+      });
+    }
+
+    // Verify that the selected method exists and is active.
+    const methodResult = await pool.query(
+      `SELECT id, method_name, currency
+       FROM payment_settings
+       WHERE id = $1 AND is_active = TRUE`,
+      [methodId]
+    );
+
+    if (methodResult.rows.length === 0) {
+      return res.status(400).json({
+        error: "Selected payment method is unavailable."
+      });
+    }
+
+    const paymentMethod = methodResult.rows[0];
+
+    if (paymentMethod.currency !== depositCurrency) {
+      return res.status(400).json({
+        error: "Payment method currency does not match deposit currency."
       });
     }
 
     const result = await pool.query(
       `INSERT INTO deposit_requests
-       (user_id, amount, currency,
-        transaction_reference, note, status)
-       VALUES ($1, $2, $3, $4, $5, 'pending')
+       (
+         user_id,
+         amount,
+         currency,
+         payment_method_id,
+         transaction_reference,
+         note,
+         status
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, 'pending')
        RETURNING id, amount, currency,
-                 transaction_reference, note,
-                 status, created_at`,
+                 payment_method_id,
+                 transaction_reference,
+                 note, status, created_at`,
       [
         userId,
         depositAmount.toFixed(2),
         depositCurrency,
+        methodId,
         reference,
         cleanNote
       ]
@@ -866,9 +909,11 @@ app.post("/api/deposits", requireLogin, async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message:
-        "Deposit request submitted. Waiting for admin approval.",
-      deposit: result.rows[0]
+      message: "Deposit request submitted. Waiting for admin approval.",
+      deposit: {
+        ...result.rows[0],
+        payment_method_name: paymentMethod.method_name
+      }
     });
 
   } catch (error) {
@@ -879,6 +924,7 @@ app.post("/api/deposits", requireLogin, async (req, res) => {
     });
   }
 });
+    
 
 
 // ========================================
@@ -956,24 +1002,29 @@ app.get(
     try {
       const result = await pool.query(
         `SELECT
-           d.id,
-           d.user_id,
-           u.full_name,
-           u.email,
-           d.amount,
-           d.currency,
-           d.transaction_reference,
-           d.receipt_url,
-           d.note,
-           d.status,
-           d.created_at,
-           d.reviewed_at
-         FROM deposit_requests d
-         JOIN app_users u ON u.id = d.user_id
-         ORDER BY
-           CASE WHEN d.status = 'pending' THEN 0 ELSE 1 END,
-           d.created_at DESC
-         LIMIT 200`
+  d.id,
+  d.user_id,
+  u.full_name,
+  u.email,
+  d.amount,
+  d.currency,
+  d.payment_method_id,
+  p.method_name AS payment_method_name,
+  p.account_name AS payment_account_name,
+  d.transaction_reference,
+  d.receipt_url,
+  d.note,
+  d.status,
+  d.created_at,
+  d.reviewed_at
+FROM deposit_requests d
+JOIN app_users u ON u.id = d.user_id
+LEFT JOIN payment_settings p
+  ON p.id = d.payment_method_id
+ORDER BY
+  CASE WHEN d.status = 'pending' THEN 0 ELSE 1 END,
+   d.created_at DESC
+LIMIT 200`
       );
 
       res.json({
