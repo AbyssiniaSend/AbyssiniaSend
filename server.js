@@ -271,7 +271,35 @@ async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS transaction_reference VARCHAR(120),
       ADD COLUMN IF NOT EXISTS receipt_url TEXT
   `);
+// USD wallet accounts
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS wallet_accounts (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+    currency VARCHAR(3) NOT NULL DEFAULT 'USD'
+      CHECK (currency = 'USD'),
+    balance NUMERIC(18, 2) NOT NULL DEFAULT 0
+      CHECK (balance >= 0),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, currency)
+  )
+`);
 
+// Wallet transaction ledger
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES app_users(id),
+    deposit_request_id BIGINT UNIQUE
+      REFERENCES deposit_requests(id),
+    transaction_type VARCHAR(30) NOT NULL,
+    amount NUMERIC(18, 2) NOT NULL CHECK (amount > 0),
+    currency VARCHAR(3) NOT NULL DEFAULT 'USD'
+      CHECK (currency = 'USD'),
+    balance_after NUMERIC(18, 2) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`);
 
   const adminName = (
     process.env.ADMIN_NAME || "AbyssiniaSend Admin"
@@ -1115,6 +1143,8 @@ app.get("/api/admin/deposits", requireAdmin, async (req, res, next) => {
          dr.amount,
          dr.currency,
          dr.note,
+         dr.transaction_reference,
+dr.receipt_url,
          dr.status,
          dr.created_at,
          dr.reviewed_at
@@ -1132,11 +1162,13 @@ app.get("/api/admin/deposits", requireAdmin, async (req, res, next) => {
   }
 });
 
-/* Confirm or reject a deposit request: administrator only */
+/* Confirm or reject a deposit: administrator only */
 app.patch(
   "/api/admin/deposits/:id/status",
   requireAdmin,
   async (req, res, next) => {
+    const client = await pool.connect();
+
     try {
       const { id } = req.params;
       const { status } = req.body || {};
@@ -1153,32 +1185,137 @@ app.patch(
         });
       }
 
-      const result = await pool.query(
-        `UPDATE deposit_requests
-         SET status = $1,
-             reviewed_at = NOW()
-         WHERE id = $2
-           AND status = 'pending'
-         RETURNING id, amount, currency, status, reviewed_at`,
-        [status, id]
+      await client.query("BEGIN");
+
+      const depositResult = await client.query(
+        `SELECT id, user_id, amount, currency, status
+         FROM deposit_requests
+         WHERE id = $1
+         FOR UPDATE`,
+        [id]
       );
 
-      if (result.rowCount === 0) {
-        return res.status(409).json({
-          error: "Request not found or already reviewed."
+      if (depositResult.rowCount === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({
+          error: "Deposit request not found."
         });
       }
 
+      const deposit = depositResult.rows[0];
+
+      if (deposit.status !== "pending") {
+        await client.query("ROLLBACK");
+        return res.status(409).json({
+          error: "This deposit has already been reviewed."
+        });
+      }
+
+      if (status === "confirmed" && deposit.currency !== "USD") {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: "Only USD deposits can be credited to this wallet."
+        });
+      }
+
+      await client.query(
+        `UPDATE deposit_requests
+         SET status = $1, reviewed_at = NOW()
+         WHERE id = $2`,
+        [status, id]
+      );
+
+      if (status === "confirmed") {
+        const walletResult = await client.query(
+          `INSERT INTO wallet_accounts
+             (user_id, currency, balance)
+           VALUES ($1, 'USD', $2)
+           ON CONFLICT (user_id, currency)
+           DO UPDATE SET
+             balance = wallet_accounts.balance + EXCLUDED.balance,
+             updated_at = NOW()
+           RETURNING balance`,
+          [deposit.user_id, deposit.amount]
+        );
+
+        await client.query(
+          `INSERT INTO wallet_transactions
+             (user_id, deposit_request_id, transaction_type,
+              amount, currency, balance_after)
+           VALUES ($1, $2, 'deposit', $3, 'USD', $4)`,
+          [
+            deposit.user_id,
+            deposit.id,
+            deposit.amount,
+            walletResult.rows[0].balance
+          ]
+        );
+      }
+
+      await client.query("COMMIT");
+
       return res.json({
-        message: `Deposit request ${status} successfully.`,
-        deposit: result.rows[0]
+        message: `Deposit ${status} successfully.`,
+        deposit: {
+          id: deposit.id,
+          amount: deposit.amount,
+          currency: deposit.currency,
+          status
+        }
       });
     } catch (error) {
+      await client.query("ROLLBACK");
       next(error);
+    } finally {
+      client.release();
     }
   }
 );
+/* Get signed-in user's USD wallet balance */
+app.get("/api/wallet", requireLogin, async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT balance, currency
+       FROM wallet_accounts
+       WHERE user_id = $1 AND currency = 'USD'`,
+      [req.session.user.id]
+    );
 
+    return res.json({
+      balance: result.rows[0]?.balance || "0.00",
+      currency: "USD"
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+/* Get signed-in user's deposit history */
+app.get("/api/deposits/mine", requireLogin, async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         id,
+         amount,
+         currency,
+         transaction_reference,
+         note,
+         status,
+         created_at,
+         reviewed_at
+       FROM deposit_requests
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 100`,
+      [req.session.user.id]
+    );
+
+    return res.json({
+      deposits: result.rows
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 /* Unknown API routes return JSON */
 app.use("/api", (req, res) => {
   return res.status(404).json({
