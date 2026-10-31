@@ -299,7 +299,7 @@ async function initializeDatabase() {
     )
   `);
 
- // 7. WALLET TRANSACTIONS
+// 7. WALLET TRANSACTIONS
 await pool.query(`
   CREATE TABLE IF NOT EXISTS wallet_transactions (
     id BIGSERIAL PRIMARY KEY,
@@ -309,6 +309,7 @@ await pool.query(`
     transaction_type VARCHAR(30) NOT NULL,
     description TEXT,
     reference_id BIGINT,
+    balance_after NUMERIC(18, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )
 `);
@@ -322,6 +323,11 @@ await pool.query(`
 await pool.query(`
   ALTER TABLE wallet_transactions
   ADD COLUMN IF NOT EXISTS reference_id BIGINT
+`);
+
+await pool.query(`
+  ALTER TABLE wallet_transactions
+  ADD COLUMN IF NOT EXISTS balance_after NUMERIC(18, 2) NOT NULL DEFAULT 0
 `);
 
   // 8. SUPPORT MESSAGES
@@ -1213,29 +1219,38 @@ app.patch(
           [deposit.user_id]
         );
 
-        // Credit the wallet exactly once.
-        await client.query(
-          `UPDATE wallet_accounts
-           SET balance = balance + $1
-           WHERE user_id = $2
-           AND currency = 'USD'`,
-          [deposit.amount, deposit.user_id]
-        );
+      // Credit the wallet and get the new balance.
+const walletResult = await client.query(
+  `UPDATE wallet_accounts
+   SET balance = balance + $1
+   WHERE user_id = $2
+     AND currency = 'USD'
+   RETURNING balance`,
+  [deposit.amount, deposit.user_id]
+);
 
-        // Record the wallet transaction.
-        await client.query(
-          `INSERT INTO wallet_transactions
-           (user_id, amount, currency,
-            transaction_type, description, reference_id)
-           VALUES ($1, $2, 'USD', 'deposit',
-                   $3, $4)`,
-          [
-            deposit.user_id,
-            deposit.amount,
-            `Admin-approved deposit #${deposit.id}`,
-            deposit.id
-          ]
-        );
+if (walletResult.rowCount === 0) {
+  throw new Error("USD wallet not found for this user.");
+}
+
+const balanceAfter = walletResult.rows[0].balance;
+
+
+
+      // Record the wallet transaction.
+await client.query(
+  `INSERT INTO wallet_transactions
+   (user_id, amount, currency, transaction_type,
+    description, reference_id, balance_after)
+   VALUES ($1, $2, 'USD', 'deposit', $3, $4, $5)`,
+  [
+    deposit.user_id,
+    deposit.amount,
+    `Admin-approved deposit #${deposit.id}`,
+    deposit.id,
+    balanceAfter
+  ]
+);
       }
 
       // Update deposit status.
