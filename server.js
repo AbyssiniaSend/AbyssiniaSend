@@ -1,5 +1,6 @@
 const express = require("express");
 const session = require("express-session");
+const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const { Pool } = require("pg");
 const PgSession = require("connect-pg-simple")(session);
