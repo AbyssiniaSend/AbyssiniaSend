@@ -95,9 +95,36 @@ button,input,textarea{font:inherit}button{cursor:pointer}
       </section>
 
       <section class="page" id="page-deposits">
-        <div class="heading"><div><h2>Deposit requests</h2><p>Review submitted  deposit requests. Approval  verify a real payment.</p></div><button class="btn" id="refreshDeposits">↻ Refresh</button></div>
-        <div class="panel"><div class="table-wrap"><table><thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Payment method</th><th>Reference</th><th>Status</th><th>Action</th></tr></thead><tbody id="depositsTable"><tr><td colspan="7">Loading…</td></tr></tbody></table></div></div>
-      </section>
+  <div class="heading">
+    <div>
+      <h2>Deposit requests</h2>
+      <p>Review submitted deposit requests. Approval verify a real payment.</p>
+    </div>
+    <button class="btn" id="refreshDeposits">↻ Refresh</button>
+  </div>
+
+  <div class="panel">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Amount</th>
+            <th>Payment Method</th>
+            <th>Transaction ID</th>
+            <th>Screenshot</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="depositsTable">
+          <tr><td colspan="8">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
       <section class="page" id="page-transfers">
         <div class="heading"><div><h2>Transfer requests</h2><p>Review simulated transfer requests. Confirming does not send real money.</p></div><button class="btn" id="refreshTransfers">↻ Refresh</button></div>
@@ -166,12 +193,85 @@ async function updateStatus(type,id,status){
   catch(e){alert(e.message)}
 }
 function actionButtons(type,id,status){if(status!=="pending")return "Reviewed";const wrap=document.createElement("div");wrap.className="actions";[["Confirm","confirmed","yes"],["Reject","rejected","no"]].forEach(([label,val,cls])=>{const b=document.createElement("button");b.className="mini "+cls;b.textContent=label;b.onclick=()=>updateStatus(type,id,val);wrap.appendChild(b)});return wrap}
-async function loadDeposits(){
-  $("depositsTable").innerHTML='<tr><td colspan="7">Loading…</td></tr>';
-  try{const d=await api("/api/admin/deposits");$("depositsTable").replaceChildren();const rows=d.deposits||[];
-    if(!rows.length){$("depositsTable").innerHTML='<tr><td colspan="7">No deposit requests.</td></tr>';return}
-    rows.forEach(x=>{const tr=document.createElement("tr");[x.id,`${x.full_name||"Unknown"} (${x.email||"—"})`,`${x.amount} ${x.currency||""}`,x.payment_method_name||"—",x.transaction_reference||"—"].forEach(v=>{const td=document.createElement("td");td.textContent=escapeText(v);tr.appendChild(td)});const st=document.createElement("td");st.innerHTML=statusTag(x.status);tr.appendChild(st);const ac=document.createElement("td");const buttons=actionButtons("deposits",x.id,x.status);if(typeof buttons==="string")ac.textContent=buttons;else ac.appendChild(buttons);tr.appendChild(ac);$("depositsTable").appendChild(tr)});
-  }catch(e){$("depositsTable").innerHTML=`<tr><td colspan="7" class="error">${escapeText(e.message)}</td></tr>`}
+async function loadDeposits() {
+  $("depositsTable").innerHTML =
+    '<tr><td colspan="8">Loading…</td></tr>';
+
+  try {
+    const d = await api("/api/admin/deposits");
+    const rows = d.deposits || [];
+
+    $("depositsTable").replaceChildren();
+
+    if (!rows.length) {
+      $("depositsTable").innerHTML =
+        '<tr><td colspan="8">No deposit requests.</td></tr>';
+      return;
+    }
+
+    rows.forEach(x => {
+      const tr = document.createElement("tr");
+
+      const values = [
+        x.id,
+        `${x.full_name || "Unknown"} (${x.email || "—"})`,
+        `${x.amount} ${x.currency || ""}`,
+        x.payment_method_name || "—",
+        x.transaction_reference || "—"
+      ];
+
+      values.forEach(value => {
+        const td = document.createElement("td");
+        td.textContent = String(value);
+        tr.appendChild(td);
+      });
+
+      // Screenshot
+      const imageCell = document.createElement("td");
+
+      if (x.receipt_url) {
+        const link = document.createElement("a");
+        link.href = x.receipt_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "View Screenshot";
+        link.style.color = "#f3d48e";
+
+        imageCell.appendChild(link);
+      } else {
+        imageCell.textContent = "No screenshot";
+      }
+
+      tr.appendChild(imageCell);
+
+      // Status
+      const statusCell = document.createElement("td");
+      statusCell.innerHTML = statusTag(x.status);
+      tr.appendChild(statusCell);
+
+      // Action buttons
+      const actionCell = document.createElement("td");
+      const buttons = actionButtons(
+        "deposits",
+        x.id,
+        x.status
+      );
+
+      if (typeof buttons === "string") {
+        actionCell.textContent = buttons;
+      } else {
+        actionCell.appendChild(buttons);
+      }
+
+      tr.appendChild(actionCell);
+
+      $("depositsTable").appendChild(tr);
+    });
+
+  } catch (e) {
+    $("depositsTable").innerHTML =
+      `<tr><td colspan="8" class="error">${escapeText(e.message)}</td></tr>`;
+  }
 }
 async function loadTransfers(){
   $("transfersTable").innerHTML='<tr><td colspan="7">Loading…</td></tr>';
