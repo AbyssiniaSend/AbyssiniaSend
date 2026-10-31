@@ -1683,7 +1683,6 @@ async function initializeTransferColumns() {
   `);
 }
 
-
 // ========================================
 // USER: CREATE SEND MONEY REQUEST
 // ========================================
@@ -1692,9 +1691,12 @@ app.post(
   "/api/transfers",
   requireLogin,
   async (req, res) => {
-    const client = await pool.connect();
+    let client;
+    let transactionStarted = false;
 
     try {
+      client = await pool.connect();
+
       const userId = req.session.user.id;
 
       const {
@@ -1727,7 +1729,7 @@ app.post(
           ? note.trim().slice(0, 300)
           : "";
 
-      // Validate amount
+      // 1. Validate amount format
       if (
         !Number.isFinite(transferAmount) ||
         transferAmount <= 0 ||
@@ -1738,68 +1740,21 @@ app.post(
         });
       }
 
-      // Minimum transfer is $1,000
-      if (transferAmount < 1000) {
-        return res.status(400).json({
-          error: "Minimum transfer amount is $1,000."
-        });
-      }
-
-      // Validate recipient
-      if (
-        recipientName.length < 2 ||
-        recipientName.length > 150
-      ) {
-        return res.status(400).json({
-          error: "Enter a valid recipient name."
-        });
-      }
-
-      if (
-        recipientContact.length < 3 ||
-        recipientContact.length > 150
-      ) {
-        return res.status(400).json({
-          error: "Enter a valid recipient contact."
-        });
-      }
-
-     const allowedMethods = [
-  "Commercial Bank of Ethiopia",
-  "Bank of Abyssinia",
-  "Awash Bank",
-  "Dashen Bank",
-  "Wegagen Bank",
-  "Hibret Bank",
-  "Nib International Bank",
-  "Oromia Bank",
-  "Oromia International Bank",
-  "Cooperative Bank of Oromia",
-  "Zemen Bank",
-  "Bunna Bank",
-  "Berhan Bank",
-  "Abay Bank",
-  "Enat Bank",
-  "Addis International Bank",
-  "Lion International Bank",
-  "Siinqee Bank",
-  "Tsehay Bank",
-  "Goh Betoch Bank",
-  "Amhara Bank",
-  "Hijra Bank",
-  "ZamZam Bank",
-  "Telebirr"
-];
-
-      if (!allowedMethods.includes(payoutMethod)) {
-        return res.status(400).json({
-          error: "Select a supported payout method."
-        });
-      }
-
+      // 2. Start transaction
       await client.query("BEGIN");
+      transactionStarted = true;
 
-      // Lock the user's USD wallet while checking balance
+      // 3. Ensure wallet exists
+      await client.query(
+        `INSERT INTO wallet_accounts
+         (user_id, currency, balance)
+         VALUES ($1, 'USD', 0)
+         ON CONFLICT (user_id, currency)
+         DO NOTHING`,
+        [userId]
+      );
+
+      // 4. Lock and check wallet
       const walletResult = await client.query(
         `SELECT balance
          FROM wallet_accounts
@@ -1809,28 +1764,101 @@ app.post(
         [userId]
       );
 
-      const balance =
-        walletResult.rows.length > 0
-          ? Number(walletResult.rows[0].balance)
-          : 0;
+      const balance = Number(walletResult.rows[0].balance);
 
+      // FIRST: Empty wallet
       if (balance <= 0) {
         await client.query("ROLLBACK");
+        transactionStarted = false;
 
         return res.status(400).json({
           error: "Please recharge your wallet first."
         });
       }
 
+      // SECOND: Minimum transfer amount
+      if (transferAmount < 1000) {
+        await client.query("ROLLBACK");
+        transactionStarted = false;
+
+        return res.status(400).json({
+          error: "Minimum transfer amount is $1,000."
+        });
+      }
+
+      // THIRD: Insufficient balance
       if (balance < transferAmount) {
         await client.query("ROLLBACK");
+        transactionStarted = false;
 
         return res.status(400).json({
           error: "Insufficient balance."
         });
       }
 
-      // Create  transfer request
+      // 5. Validate recipient
+      if (
+        recipientName.length < 2 ||
+        recipientName.length > 150
+      ) {
+        await client.query("ROLLBACK");
+        transactionStarted = false;
+
+        return res.status(400).json({
+          error: "Enter a valid recipient name."
+        });
+      }
+
+      if (
+        recipientContact.length < 3 ||
+        recipientContact.length > 150
+      ) {
+        await client.query("ROLLBACK");
+        transactionStarted = false;
+
+        return res.status(400).json({
+          error: "Enter a valid recipient contact."
+        });
+      }
+
+      // 6. Supported payout methods
+      const allowedMethods = [
+        "Commercial Bank of Ethiopia",
+        "Bank of Abyssinia",
+        "Awash Bank",
+        "Dashen Bank",
+        "Wegagen Bank",
+        "Hibret Bank",
+        "Nib International Bank",
+        "Oromia Bank",
+        "Oromia International Bank",
+        "Cooperative Bank of Oromia",
+        "Zemen Bank",
+        "Bunna Bank",
+        "Berhan Bank",
+        "Abay Bank",
+        "Enat Bank",
+        "Addis International Bank",
+        "Lion International Bank",
+        "Siinqee Bank",
+        "Tsehay Bank",
+        "Goh Betoch Bank",
+        "Amhara Bank",
+        "Hijra Bank",
+        "ZamZam Bank",
+        "Telebirr"
+      ];
+
+      if (!allowedMethods.includes(payoutMethod)) {
+        await client.query("ROLLBACK");
+        transactionStarted = false;
+
+        return res.status(400).json({
+          error: "Select a supported payout method."
+        });
+      }
+
+      // 7. Create transfer request
       const result = await client.query(
         `INSERT INTO transfer_requests
          (
@@ -1856,15 +1884,18 @@ app.post(
       );
 
       await client.query("COMMIT");
+      transactionStarted = false;
 
       return res.status(201).json({
         success: true,
-        message: " transfer request submitted for review.",
+        message: "Transfer request submitted for review.",
         transfer: result.rows[0]
       });
 
     } catch (error) {
-      await client.query("ROLLBACK");
+      if (client && transactionStarted) {
+        await client.query("ROLLBACK").catch(() => {});
+      }
 
       console.error("Create transfer error:", error);
 
@@ -1873,7 +1904,9 @@ app.post(
       });
 
     } finally {
-      client.release();
+      if (client) {
+        client.release();
+      }
     }
   }
 );
