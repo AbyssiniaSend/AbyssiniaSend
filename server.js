@@ -299,25 +299,30 @@ async function initializeDatabase() {
     )
   `);
 
-  // 7. WALLET TRANSACTIONS
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS wallet_transactions (
-      id BIGSERIAL PRIMARY KEY,
-      user_id BIGINT NOT NULL REFERENCES app_users(id),
-      amount NUMERIC(18, 2) NOT NULL,
-      currency VARCHAR(3) NOT NULL DEFAULT 'USD',
-      transaction_type VARCHAR(30) NOT NULL,
-      description TEXT,
-      reference_id BIGINT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
+ // 7. WALLET TRANSACTIONS
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES app_users(id),
+    amount NUMERIC(18, 2) NOT NULL,
+    currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+    transaction_type VARCHAR(30) NOT NULL,
+    description TEXT,
+    reference_id BIGINT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`);
 
-  // Ensure description exists in older databases
-  await pool.query(`
-    ALTER TABLE wallet_transactions
-    ADD COLUMN IF NOT EXISTS description TEXT
-  `);
+// Ensure required columns exist in older databases
+await pool.query(`
+  ALTER TABLE wallet_transactions
+  ADD COLUMN IF NOT EXISTS description TEXT
+`);
+
+await pool.query(`
+  ALTER TABLE wallet_transactions
+  ADD COLUMN IF NOT EXISTS reference_id BIGINT
+`);
 
   // 8. SUPPORT MESSAGES
   await pool.query(`
