@@ -626,78 +626,97 @@ th {
       <!-- OTHER PAGES WILL BE ADDED IN PART 2 -->
 
    
-      <!-- ADD MONEY PAGE -->
-      <section class="page" id="add-money">
+<!-- ADD MONEY PAGE -->
+<section class="page" id="add-money">
+  <div class="panel">
+    <h2>＋ Add Money</h2>
+    <p class="muted">
+      Minimum deposit amount is $100 USD.
+    </p>
 
-        <div class="panel">
-          <h2>＋ Add Money</h2>
-          <p class="muted">
-            Submit a deposit request for admin review.
-          </p>
+    <form id="depositForm">
 
-          <form id="depositForm">
+      <label>Deposit Amount (USD)</label>
+      <input
+        class="form-control"
+        type="number"
+        id="depositAmount"
+        min="100"
+        step="0.01"
+        placeholder="Minimum $100"
+        required
+      >
 
-            <label>Deposit Amount (USD)</label>
-            <input
-              class="form-control"
-              type="number"
-              id="depositAmount"
-              min="1"
-              step="0.01"
-              placeholder="Enter amount in USD"
-              required
-            >
+      <div class="panel" style="margin:15px 0;">
+        <h3>Payment Instructions</h3>
+        <p class="muted">
+          Follow these steps to make your payment.
+        </p>
 
-            <label>Payment Method</label>
-            <select
-              class="form-control"
-              id="paymentMethodSelect"
-              required
-            >
-              <option value="">Loading payment methods...</option>
-            </select>
+        <ol style="padding-left:22px;line-height:2;">
+          <li>Enter your deposit amount (minimum $100).</li>
+          <li>Click Pay with Remitly.</li>
+          <li>Complete your payment through Remitly.</li>
+          <li>Take a screenshot of your payment confirmation.</li>
+          <li>Upload the screenshot below.</li>
+          <li>Submit your deposit request for review.</li>
+        </ol>
 
-            <div
-              id="paymentMethodDetails"
-              class="panel"
-              style="margin-bottom:15px;"
-            >
-              Select a payment method to see its details.
-            </div>
+        <a
+          href="https://remit.ly/pay/nardosadanea7293"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-gold"
+          style="display:inline-block;text-decoration:none;margin-top:12px;"
+        >
+          Pay with Remitly ↗
+        </a>
+      </div>
 
-            <label>Transaction Reference</label>
-            <input
-              class="form-control"
-              type="text"
-              id="depositTransactionReference"
-              placeholder="Enter payment transaction reference"
-              required
-            >
+      <label>Payment Screenshot</label>
+      <input
+        class="form-control"
+        type="file"
+        id="depositScreenshot"
+        accept="image/png,image/jpeg,image/webp"
+        required
+      >
 
-            <label>Note (Optional)</label>
-            <textarea
-              class="form-control"
-              id="depositNote"
-              placeholder="Additional information"
-              rows="3"
-            ></textarea>
+      <img
+        id="depositPreview"
+        alt="Payment screenshot preview"
+        style="display:none;max-width:100%;max-height:300px;border-radius:12px;margin:10px 0;"
+      >
 
-            <input
-              type="hidden"
-              id="depositCurrency"
-              value="USD"
-            >
+      <label>Transaction Reference</label>
+      <input
+        class="form-control"
+        type="text"
+        id="depositTransactionReference"
+        placeholder="Enter Remitly transaction reference"
+        required
+      >
 
-            <button class="btn btn-gold" type="submit">
-              Submit Deposit Request
-            </button>
+      <label>Note (Optional)</label>
+      <textarea
+        class="form-control"
+        id="depositNote"
+        rows="3"
+        maxlength="200"
+        placeholder="Additional information"
+      ></textarea>
 
-            <p id="depositMessage" class="muted"></p>
+      <input type="hidden" id="depositCurrency" value="USD">
 
-          </form>
-        </div>
+      <button class="btn btn-gold" type="submit">
+        Submit Deposit Request
+      </button>
 
-      </section>
+      <p id="depositMessage" class="muted"></p>
+    </form>
+  </div>
+</section>
+
 
 
       <!-- SEND MONEY PAGE -->
@@ -1270,14 +1289,35 @@ document.getElementById("paymentMethodSelect")
 // ADD MONEY / DEPOSIT REQUEST
 // ========================================
 
+document.getElementById("depositScreenshot")
+  .addEventListener("change", function() {
+    const file = this.files[0];
+    const preview = document.getElementById("depositPreview");
+
+    if (!file) {
+      preview.style.display = "none";
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      this.value = "";
+      preview.style.display = "none";
+      showMessage("depositMessage", "Image must be smaller than 2MB.");
+      return;
+    }
+
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+  });
+
 document.getElementById("depositForm")
   .addEventListener("submit", async function(event) {
 
     event.preventDefault();
 
-    const amount = document.getElementById(
-      "depositAmount"
-    ).value;
+    const amount = Number(
+      document.getElementById("depositAmount").value
+    );
 
     const reference = document.getElementById(
       "depositTransactionReference"
@@ -1291,29 +1331,36 @@ document.getElementById("depositForm")
       "depositCurrency"
     ).value;
 
+    const screenshot = document.getElementById(
+      "depositScreenshot"
+    ).files[0];
+
     const button = this.querySelector("button[type=submit]");
+
+    if (amount < 100) {
+      showMessage("depositMessage", "Minimum deposit is $100.");
+      return;
+    }
+
+    if (!screenshot) {
+      showMessage("depositMessage", "Please upload your payment screenshot.");
+      return;
+    }
 
     button.disabled = true;
 
     try {
-      const data = await apiRequest("/api/deposits", {
-  method: "POST",
-  body: JSON.stringify({
-    amount,
-    currency,
-    payment_method_id: document.getElementById(
-      "paymentMethodSelect"
-    ).value,
-    transaction_reference: reference,
-    note
-  })
-});
+      showMessage(
+        "depositMessage",
+        "Screenshot selected. Backend upload setup is still required."
+      );
 
-showMessage(
-  "depositMessage",
-  data.message,
-  true
-);
+    } catch (error) {
+      showMessage("depositMessage", error.message);
+    } finally {
+      button.disabled = false;
+    }
+  });
 
       this.reset();
 
