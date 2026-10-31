@@ -797,134 +797,118 @@ app.get("/api/payment-methods", requireLogin, async (req, res) => {
 // ========================================
 // CREATE DEPOSIT REQUEST
 // ========================================
+const depositUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 2 * 1024 * 1024
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
 
-app.post("/api/deposits", requireLogin, async (req, res) => {
-  try {
-    const userId = req.session.user.id;
-
-    const {
-      amount,
-      currency,
-      payment_method_id,
-      transaction_reference,
-      note
-    } = req.body;
-
-    const depositAmount = Number(amount);
-    const methodId = Number(payment_method_id);
-
-    const depositCurrency =
-      typeof currency === "string"
-        ? currency.trim().toUpperCase()
-        : "";
-
-    const reference =
-      typeof transaction_reference === "string"
-        ? transaction_reference.trim()
-        : "";
-
-    const cleanNote =
-      typeof note === "string"
-        ? note.trim().slice(0, 200)
-        : "";
-
-    if (
-      !Number.isFinite(depositAmount) ||
-      depositAmount <= 0 ||
-      depositAmount > 1000000
-    ) {
-      return res.status(400).json({
-        error: "Enter a valid deposit amount."
-      });
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error("Only JPG, PNG and WEBP images are allowed."));
     }
 
-    if (!["USD", "ETB"].includes(depositCurrency)) {
-      return res.status(400).json({
-        error: "Unsupported currency."
-      });
-    }
-
-    if (
-      !Number.isSafeInteger(methodId) ||
-      methodId <= 0
-    ) {
-      return res.status(400).json({
-        error: "Please select a valid payment method."
-      });
-    }
-
-    if (!reference || reference.length > 150) {
-      return res.status(400).json({
-        error: "Enter a valid transaction reference."
-      });
-    }
-
-    // Verify that the selected method exists and is active.
-    const methodResult = await pool.query(
-      `SELECT id, method_name, currency
-       FROM payment_settings
-       WHERE id = $1 AND is_active = TRUE`,
-      [methodId]
-    );
-
-    if (methodResult.rows.length === 0) {
-      return res.status(400).json({
-        error: "Selected payment method is unavailable."
-      });
-    }
-
-    const paymentMethod = methodResult.rows[0];
-
-    if (paymentMethod.currency !== depositCurrency) {
-      return res.status(400).json({
-        error: "Payment method currency does not match deposit currency."
-      });
-    }
-
-    const result = await pool.query(
-      `INSERT INTO deposit_requests
-       (
-         user_id,
-         amount,
-         currency,
-         payment_method_id,
-         transaction_reference,
-         note,
-         status
-       )
-       VALUES ($1, $2, $3, $4, $5, $6, 'pending')
-       RETURNING id, amount, currency,
-                 payment_method_id,
-                 transaction_reference,
-                 note, status, created_at`,
-      [
-        userId,
-        depositAmount.toFixed(2),
-        depositCurrency,
-        methodId,
-        reference,
-        cleanNote
-      ]
-    );
-
-    res.status(201).json({
-      success: true,
-      message: "Deposit request submitted. Waiting for admin approval.",
-      deposit: {
-        ...result.rows[0],
-        payment_method_name: paymentMethod.method_name
-      }
-    });
-
-  } catch (error) {
-    console.error("Deposit request error:", error);
-
-    res.status(500).json({
-      error: "Could not submit deposit request."
-    });
+    cb(null, true);
   }
 });
-    
+
+app.post(
+  "/api/deposits",
+  requireLogin,
+  depositUpload.single("screenshot"),
+  async (req, res) => {
+    try {
+      const userId = req.session.user.id;
+
+      const {
+        amount,
+        currency,
+        transaction_reference,
+        note
+      } = req.body;
+
+      const depositAmount = Number(amount);
+      const depositCurrency = String(currency || "").trim().toUpperCase();
+      const reference = String(transaction_reference || "").trim();
+      const cleanNote = String(note || "").trim().slice(0, 200);
+
+      if (
+        !Number.isFinite(depositAmount) ||
+        depositAmount < 100 ||
+        depositAmount > 1000000
+      ) {
+        return res.status(400).json({
+          error: "Minimum deposit is $100."
+        });
+      }
+
+      if (depositCurrency !== "USD") {
+        return res.status(400).json({
+          error: "Only USD deposits are accepted."
+        });
+      }
+
+      if (!reference || reference.length > 150) {
+        return res.status(400).json({
+          error: "Enter a valid transaction reference."
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          error: "Please upload your payment screenshot."
+        });
+      }
+
+      const screenshotData =
+        `data:${req.file.mimetype};base64,` +
+        req.file.buffer.toString("base64");
+
+      const result = await pool.query(
+        `INSERT INTO deposit_requests
+         (
+           user_id,
+           amount,
+           currency,
+           transaction_reference,
+           note,
+           receipt_url,
+           status
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+         RETURNING id, amount, currency,
+                   transaction_reference,
+                   note, receipt_url, status, created_at`,
+        [
+          userId,
+          depositAmount.toFixed(2),
+          depositCurrency,
+          reference,
+          cleanNote,
+          screenshotData
+        ]
+      );
+
+      res.status(201).json({
+        success: true,
+        message: "Deposit request submitted. Waiting for admin review.",
+        deposit: result.rows[0]
+      });
+
+    } catch (error) {
+      console.error("Deposit request error:", error);
+
+      res.status(500).json({
+        error: "Could not submit deposit request."
+      });
+    }
+  }
+);
 
 
 
