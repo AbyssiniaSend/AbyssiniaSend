@@ -188,7 +188,9 @@ function googleNotConfigured(res) {
     "Google Login is not configured. Please try email and password login."
   );
 }
+
 async function initializeDatabase() {
+  // 1. USERS TABLE
   await pool.query(`
     CREATE TABLE IF NOT EXISTS app_users (
       id BIGSERIAL PRIMARY KEY,
@@ -213,6 +215,7 @@ async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS country VARCHAR(100)
   `);
 
+  // 2. OAUTH ACCOUNTS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS oauth_accounts (
       id BIGSERIAL PRIMARY KEY,
@@ -226,6 +229,7 @@ async function initializeDatabase() {
     )
   `);
 
+  // 3. TRANSFER REQUESTS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS transfer_requests (
       id BIGSERIAL PRIMARY KEY,
@@ -239,6 +243,7 @@ async function initializeDatabase() {
     )
   `);
 
+  // 4. DEPOSIT REQUESTS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS deposit_requests (
       id BIGSERIAL PRIMARY KEY,
@@ -260,6 +265,7 @@ async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS receipt_url TEXT
   `);
 
+  // 5. PAYMENT SETTINGS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS payment_settings (
       id BIGSERIAL PRIMARY KEY,
@@ -273,12 +279,15 @@ async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+
   await pool.query(`
     ALTER TABLE deposit_requests
     ADD COLUMN IF NOT EXISTS payment_method_id BIGINT
     REFERENCES payment_settings(id)
     ON DELETE SET NULL
   `);
+
+  // 6. WALLET ACCOUNTS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wallet_accounts (
       id BIGSERIAL PRIMARY KEY,
@@ -290,6 +299,7 @@ async function initializeDatabase() {
     )
   `);
 
+  // 7. WALLET TRANSACTIONS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wallet_transactions (
       id BIGSERIAL PRIMARY KEY,
@@ -303,6 +313,13 @@ async function initializeDatabase() {
     )
   `);
 
+  // Ensure description exists in older databases
+  await pool.query(`
+    ALTER TABLE wallet_transactions
+    ADD COLUMN IF NOT EXISTS description TEXT
+  `);
+
+  // 8. SUPPORT MESSAGES
   await pool.query(`
     CREATE TABLE IF NOT EXISTS support_messages (
       id BIGSERIAL PRIMARY KEY,
@@ -315,6 +332,7 @@ async function initializeDatabase() {
     )
   `);
 
+  // 9. USER NOTIFICATIONS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS user_notifications (
       id BIGSERIAL PRIMARY KEY,
@@ -326,6 +344,7 @@ async function initializeDatabase() {
     )
   `);
 
+  // 10. DATABASE INDEXES
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_deposits_user
     ON deposit_requests(user_id, created_at DESC)
@@ -341,6 +360,7 @@ async function initializeDatabase() {
     ON user_notifications(user_id, created_at DESC)
   `);
 
+  // 11. ADMIN ACCOUNT
   const adminHash = await bcrypt.hash(
     process.env.ADMIN_PASSWORD,
     12
@@ -354,35 +374,51 @@ async function initializeDatabase() {
      DO UPDATE SET
        role = 'admin',
        password_hash = EXCLUDED.password_hash`,
-    ["AbyssiniaSend Administrator", ADMIN_EMAIL, adminHash]
+    [
+      "AbyssiniaSend Administrator",
+      ADMIN_EMAIL,
+      adminHash
+    ]
   );
 
   console.log("Database initialized successfully.");
 }
+
 // ========================================
 // REGISTER
 // ========================================
 
 app.post("/api/register", loginLimiter, async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const {
+      firstName,
+      lastName,
+      country,
+      email,
+      password
+    } = req.body;
 
     if (
-      typeof fullName !== "string" ||
+      typeof firstName !== "string" ||
+      typeof lastName !== "string" ||
+      typeof country !== "string" ||
       typeof email !== "string" ||
       typeof password !== "string"
     ) {
       return res.status(400).json({
-        error: "Please provide all required fields."
+        error: "Please complete all required fields."
       });
     }
 
-    const cleanName = fullName.trim();
+    const cleanFirstName = firstName.trim();
+    const cleanLastName = lastName.trim();
+    const cleanCountry = country.trim();
     const cleanEmail = email.trim().toLowerCase();
+    const fullName = `${cleanFirstName} ${cleanLastName}`;
 
-    if (cleanName.length < 2 || cleanName.length > 120) {
+    if (!cleanFirstName || !cleanLastName || !cleanCountry) {
       return res.status(400).json({
-        error: "Name must be between 2 and 120 characters."
+        error: "Please complete your name and country."
       });
     }
 
@@ -398,53 +434,68 @@ app.post("/api/register", loginLimiter, async (req, res) => {
       });
     }
 
-    const existing = await pool.query(
-      "SELECT id FROM app_users WHERE email = $1",
-      [cleanEmail]
-    );
-
-    if (existing.rows.length > 0) {
-      return res.status(409).json({
-        error: "Email already registered."
-      });
-    }
-
     const passwordHash = await bcrypt.hash(password, 12);
+    const client = await pool.connect();
 
-    const result = await pool.query(
-      `INSERT INTO app_users
-       (full_name, email, password_hash, role)
-       VALUES ($1, $2, $3, 'user')
-       RETURNING id, full_name, email, role`,
-      [cleanName, cleanEmail, passwordHash]
-    );
+    try {
+      await client.query("BEGIN");
 
-    const user = result.rows[0];
+      const result = await client.query(
+        `INSERT INTO app_users
+         (full_name, first_name, last_name, country,
+          email, password_hash, role)
+         VALUES ($1, $2, $3, $4, $5, $6, 'user')
+         RETURNING id, full_name, email, role`,
+        [
+          fullName,
+          cleanFirstName,
+          cleanLastName,
+          cleanCountry,
+          cleanEmail,
+          passwordHash
+        ]
+      );
 
-    await pool.query(
-      `INSERT INTO wallet_accounts (user_id, currency, balance)
-       VALUES ($1, 'USD', 0)
-       ON CONFLICT (user_id, currency) DO NOTHING`,
-      [user.id]
-    );
+      const user = result.rows[0];
 
-    await regenerateSession(req);
+      await client.query(
+        `INSERT INTO wallet_accounts
+         (user_id, currency, balance)
+         VALUES ($1, 'USD', 0)
+         ON CONFLICT (user_id, currency) DO NOTHING`,
+        [user.id]
+      );
 
-    req.session.user = safeUser(user);
+      await client.query("COMMIT");
 
-    await saveSession(req);
+      await regenerateSession(req);
+      req.session.user = safeUser(user);
+      await saveSession(req);
 
-    res.status(201).json({
-      success: true,
-      message: "Account created successfully.",
-      user: safeUser(user)
-    });
+      return res.status(201).json({
+        success: true,
+        message: "Account created successfully.",
+        user: safeUser(user)
+      });
+
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
 
   } catch (error) {
     console.error("Register error:", error);
 
+    if (error.code === "23505") {
+      return res.status(409).json({
+        error: "This email is already registered."
+      });
+    }
+
     res.status(500).json({
-      error: "Registration failed."
+      error: "Registration failed. Please try again."
     });
   }
 });
