@@ -1108,9 +1108,7 @@ function showPage(pageId, button = null) {
     loadWalletBalance();
   }
 
-  if (pageId === "add-money") {
-    loadPaymentMethods();
-  }
+  
 
   if (pageId === "transactions") {
     loadDepositHistory();
@@ -1187,110 +1185,12 @@ function toggleBalance() {
   loadWalletBalance();
 }
 
-
-// ========================================
-// PAYMENT METHODS
-// ========================================
-
-async function loadPaymentMethods() {
-  const select = document.getElementById(
-    "paymentMethodSelect"
-  );
-
-  const details = document.getElementById(
-    "paymentMethodDetails"
-  );
-
-  try {
-    const data = await apiRequest("/api/payment-methods");
-
-    select.replaceChildren();
-
-    const defaultOption = document.createElement("option");
-    defaultOption.value = "";
-    defaultOption.textContent = "Select payment method";
-
-    select.appendChild(defaultOption);
-
-    (data.paymentMethods || []).forEach(method => {
-      const option = document.createElement("option");
-
-      option.value = method.id;
-      option.textContent =
-        `${method.method_name} (${method.currency})`;
-
-      select.appendChild(option);
-    });
-
-    details.textContent =
-      "Select a payment method to see payment instructions.";
-
-  } catch (error) {
-    details.textContent = error.message;
-  }
-}
-
-document.getElementById("paymentMethodSelect")
-  .addEventListener("change", async function () {
-
-    const details = document.getElementById(
-      "paymentMethodDetails"
-    );
-
-    try {
-      const data = await apiRequest("/api/payment-methods");
-
-      const method = (data.paymentMethods || []).find(
-        item => String(item.id) === this.value
-      );
-
-      details.replaceChildren();
-
-      if (!method) {
-        details.textContent = "Select a payment method.";
-        return;
-      }
-
-      const heading = document.createElement("h3");
-      heading.textContent = method.method_name;
-
-      const accountName = document.createElement("p");
-      accountName.textContent =
-        "Account Name: " + (method.account_name || "Not provided");
-
-      const accountNumber = document.createElement("p");
-      accountNumber.textContent =
-        "Account Number: " + (method.account_number || "Not provided");
-
-      const instructions = document.createElement("p");
-      instructions.textContent =
-        "Instructions: " + (method.instructions || "Contact support.");
-
-      details.append(heading, accountName, accountNumber, instructions);
-
-      if (method.payment_link) {
-        const link = document.createElement("a");
-
-        link.href = method.payment_link;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = "Open Payment Link";
-
-        details.appendChild(link);
-      }
-
-    } catch (error) {
-      details.textContent = error.message;
-    }
-  });
-
-
 // ========================================
 // ADD MONEY / DEPOSIT REQUEST
 // ========================================
 
 document.getElementById("depositScreenshot")
-  .addEventListener("change", function() {
+  .addEventListener("change", function () {
     const file = this.files[0];
     const preview = document.getElementById("depositPreview");
 
@@ -1311,66 +1211,72 @@ document.getElementById("depositScreenshot")
   });
 
 document.getElementById("depositForm")
-  .addEventListener("submit", async function(event) {
-
+  .addEventListener("submit", async function (event) {
     event.preventDefault();
+
+    const button = this.querySelector('button[type="submit"]');
 
     const amount = Number(
       document.getElementById("depositAmount").value
     );
 
-    const reference = document.getElementById(
-      "depositTransactionReference"
-    ).value;
-
-    const note = document.getElementById(
-      "depositNote"
-    ).value;
-
-    const currency = document.getElementById(
-      "depositCurrency"
-    ).value;
-
     const screenshot = document.getElementById(
       "depositScreenshot"
     ).files[0];
 
-    const button = this.querySelector("button[type=submit]");
-
-    if (amount < 100) {
+    if (!Number.isFinite(amount) || amount < 100) {
       showMessage("depositMessage", "Minimum deposit is $100.");
       return;
     }
 
     if (!screenshot) {
-      showMessage("depositMessage", "Please upload your payment screenshot.");
+      showMessage("depositMessage", "Please upload your screenshot.");
       return;
     }
+
+    const formData = new FormData();
+
+    formData.append("amount", String(amount));
+    formData.append("currency", "USD");
+    formData.append(
+      "transaction_reference",
+      document.getElementById("depositTransactionReference").value.trim()
+    );
+    formData.append(
+      "note",
+      document.getElementById("depositNote").value.trim()
+    );
+    formData.append("screenshot", screenshot);
 
     button.disabled = true;
 
     try {
+      const response = await fetch("/api/deposits", {
+        method: "POST",
+        credentials: "same-origin",
+        body: formData
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Deposit request failed.");
+      }
+
       showMessage(
         "depositMessage",
-        "Screenshot selected. Backend upload setup is still required."
+        data.message || "Deposit request submitted successfully.",
+        true
       );
-
-    } catch (error) {
-      showMessage("depositMessage", error.message);
-    } finally {
-      button.disabled = false;
-    }
-  });
 
       this.reset();
 
-      document.getElementById("depositCurrency").value = "USD";
+      document.getElementById("depositPreview").style.display = "none";
 
       loadDepositHistory();
 
     } catch (error) {
       showMessage("depositMessage", error.message);
-
     } finally {
       button.disabled = false;
     }
