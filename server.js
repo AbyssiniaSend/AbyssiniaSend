@@ -1692,6 +1692,8 @@ app.post(
   "/api/transfers",
   requireLogin,
   async (req, res) => {
+    const client = await pool.connect();
+
     try {
       const userId = req.session.user.id;
 
@@ -1725,6 +1727,7 @@ app.post(
           ? note.trim().slice(0, 300)
           : "";
 
+      // Validate amount
       if (
         !Number.isFinite(transferAmount) ||
         transferAmount <= 0 ||
@@ -1735,6 +1738,14 @@ app.post(
         });
       }
 
+      // Minimum transfer is $1,000
+      if (transferAmount < 1000) {
+        return res.status(400).json({
+          error: "Minimum transfer amount is $1,000."
+        });
+      }
+
+      // Validate recipient
       if (
         recipientName.length < 2 ||
         recipientName.length > 150
@@ -1753,13 +1764,32 @@ app.post(
         });
       }
 
-      const allowedMethods = [
-        "Commercial Bank of Ethiopia",
-        "Telebirr",
-        "Bank of Abyssinia",
-        "Awash Bank",
-        "Dashen Bank"
-      ];
+     const allowedMethods = [
+  "Commercial Bank of Ethiopia",
+  "Bank of Abyssinia",
+  "Awash Bank",
+  "Dashen Bank",
+  "Wegagen Bank",
+  "Hibret Bank",
+  "Nib International Bank",
+  "Oromia Bank",
+  "Oromia International Bank",
+  "Cooperative Bank of Oromia",
+  "Zemen Bank",
+  "Bunna Bank",
+  "Berhan Bank",
+  "Abay Bank",
+  "Enat Bank",
+  "Addis International Bank",
+  "Lion International Bank",
+  "Siinqee Bank",
+  "Tsehay Bank",
+  "Goh Betoch Bank",
+  "Amhara Bank",
+  "Hijra Bank",
+  "ZamZam Bank",
+  "Telebirr"
+];
 
       if (!allowedMethods.includes(payoutMethod)) {
         return res.status(400).json({
@@ -1767,8 +1797,41 @@ app.post(
         });
       }
 
-     // This is a live transfer request.
-      const result = await pool.query(
+      await client.query("BEGIN");
+
+      // Lock the user's USD wallet while checking balance
+      const walletResult = await client.query(
+        `SELECT balance
+         FROM wallet_accounts
+         WHERE user_id = $1
+         AND currency = 'USD'
+         FOR UPDATE`,
+        [userId]
+      );
+
+      const balance =
+        walletResult.rows.length > 0
+          ? Number(walletResult.rows[0].balance)
+          : 0;
+
+      if (balance <= 0) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          error: "Please recharge your wallet first."
+        });
+      }
+
+      if (balance < transferAmount) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          error: "Insufficient balance."
+        });
+      }
+
+      // Create  transfer request
+      const result = await client.query(
         `INSERT INTO transfer_requests
          (
            user_id,
@@ -1792,65 +1855,28 @@ app.post(
         ]
       );
 
-      res.status(201).json({
+      await client.query("COMMIT");
+
+      return res.status(201).json({
         success: true,
         message: " transfer request submitted for review.",
         transfer: result.rows[0]
       });
 
     } catch (error) {
+      await client.query("ROLLBACK");
+
       console.error("Create transfer error:", error);
 
-      res.status(500).json({
+      return res.status(500).json({
         error: "Could not submit transfer request."
       });
+
+    } finally {
+      client.release();
     }
   }
 );
-
-
-// ========================================
-// USER: VIEW MY TRANSFER REQUESTS
-// ========================================
-
-app.get(
-  "/api/transfers/mine",
-  requireLogin,
-  async (req, res) => {
-    try {
-      const result = await pool.query(
-        `SELECT
-           id,
-           amount,
-           currency,
-           recipient_name,
-           recipient_contact,
-           payout_method,
-           note,
-           status,
-           created_at,
-           reviewed_at
-         FROM transfer_requests
-         WHERE user_id = $1
-         ORDER BY created_at DESC
-         LIMIT 100`,
-        [req.session.user.id]
-      );
-
-      res.json({
-        transfers: result.rows
-      });
-
-    } catch (error) {
-      console.error("User transfers error:", error);
-
-      res.status(500).json({
-        error: "Could not load transfer history."
-      });
-    }
-  }
-);
-
 
 // ========================================
 // ADMIN: VIEW ALL TRANSFER REQUESTS
