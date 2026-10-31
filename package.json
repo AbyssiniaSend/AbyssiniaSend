@@ -4,13 +4,10 @@
   "version": "1.0.0",
   "description": "AbyssiniaSend Money Transfer Platform",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
- 
-
-{
-  "type": "commonjs",
   "dependencies": {
     "multer": "^2.0.2",
     "bcryptjs": "^3.0.3",
@@ -21,7 +18,4 @@
     "google-auth-library": "^10.3.0",
     "express-rate-limit": "^8.2.1"
   }
-}
-
-
 }
