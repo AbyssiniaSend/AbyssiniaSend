@@ -281,7 +281,20 @@ async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+//  EXCHANGE RATE SETTINGS
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS app_settings (
+    setting_key VARCHAR(100) PRIMARY KEY,
+    setting_value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`);
 
+await pool.query(`
+  INSERT INTO app_settings (setting_key, setting_value)
+  VALUES ('usd_to_etb__rate', '295')
+  ON CONFLICT (setting_key) DO NOTHING
+`);
   await pool.query(`
     ALTER TABLE deposit_requests
     ADD COLUMN IF NOT EXISTS payment_method_id BIGINT
@@ -3049,6 +3062,30 @@ async function start() {
     await initializeDatabase();
 
     await initializeTransferColumns();
+    async function start() {
+  try {
+    await initializeDatabase();
+
+    await initializeTransferColumns();
+
+    // Initialize Demo Exchange Rate
+    await pool.query(`
+      INSERT INTO app_settings (setting_key, setting_value)
+      VALUES ('usd_to_etb_demo_rate', '295')
+      ON CONFLICT (setting_key) DO NOTHING
+    `);
+
+    const server = app.listen(PORT, () => {
+      console.log(
+        `AbyssiniaSend server running on port ${PORT}`
+      );
+    });
+
+  } catch (error) {
+    console.error("Server startup failed:", error);
+    process.exit(1);
+  }
+}
 
     const server = app.listen(PORT, () => {
       console.log(
