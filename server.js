@@ -2156,6 +2156,93 @@ status === "confirmed"
   }
 );
 // ========================================
+// LIVE EXCHANGE RATE API
+// ========================================
+
+const LIVE_RATE_KEY = "usd_to_etb__rate";
+
+// Public: Get current live exchange rate
+app.get("/api/exchange-rate", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT setting_value
+       FROM app_settings
+       WHERE setting_key = $1`,
+      [LIVE_RATE_KEY]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({
+        error: "Exchange rate not found."
+      });
+    }
+
+    res.set("Cache-Control", "no-store");
+
+    res.json({
+      rate: Number(result.rows[0].setting_value),
+      currencyFrom: "USD",
+      currencyTo: "ETB",
+      isLive: true
+    });
+
+  } catch (error) {
+    console.error("Get exchange rate error:", error);
+
+    res.status(500).json({
+      error: "Could not load exchange rate."
+    });
+  }
+});
+
+// Admin only: Update live exchange rate
+app.patch(
+  "/api/admin/exchange-rate",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const rate = Number(req.body.rate);
+
+      if (
+        !Number.isFinite(rate) ||
+        rate < 0.01 ||
+        rate > 1000000
+      ) {
+        return res.status(400).json({
+          error: "Enter a valid exchange rate."
+        });
+      }
+
+      const result = await pool.query(
+        `INSERT INTO app_settings
+          (setting_key, setting_value, updated_at)
+         VALUES ($1, $2, NOW())
+         ON CONFLICT (setting_key)
+         DO UPDATE SET
+           setting_value = EXCLUDED.setting_value,
+           updated_at = NOW()
+         RETURNING setting_value`,
+        [LIVE_RATE_KEY, String(rate)]
+      );
+
+      res.set("Cache-Control", "no-store");
+
+      res.json({
+        success: true,
+        rate: Number(result.rows[0].setting_value),
+        message: "Exchange rate updated successfully."
+      });
+
+    } catch (error) {
+      console.error("Update exchange rate error:", error);
+
+      res.status(500).json({
+        error: "Could not update exchange rate."
+      });
+    }
+  }
+);
+// ========================================
 // ADMIN: VIEW ALL PAYMENT METHODS
 // ========================================
 
@@ -3060,32 +3147,7 @@ app.use((err, req, res, next) => {
 async function start() {
   try {
     await initializeDatabase();
-
     await initializeTransferColumns();
-    async function start() {
-  try {
-    await initializeDatabase();
-
-    await initializeTransferColumns();
-
-    // Initialize Demo Exchange Rate
-    await pool.query(`
-      INSERT INTO app_settings (setting_key, setting_value)
-      VALUES ('usd_to_etb_demo_rate', '295')
-      ON CONFLICT (setting_key) DO NOTHING
-    `);
-
-    const server = app.listen(PORT, () => {
-      console.log(
-        `AbyssiniaSend server running on port ${PORT}`
-      );
-    });
-
-  } catch (error) {
-    console.error("Server startup failed:", error);
-    process.exit(1);
-  }
-}
 
     const server = app.listen(PORT, () => {
       console.log(
