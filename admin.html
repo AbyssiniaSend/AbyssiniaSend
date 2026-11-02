@@ -57,6 +57,9 @@ button,input,textarea{font:inherit}button{cursor:pointer}
         <button data-page="users"><span class="ico">♙</span>Users</button>
         <button data-page="deposits"><span class="ico">＋</span>Deposit Requests</button>
         <button data-page="transfers"><span class="ico">⇄</span>Transfer Requests</button>
+        <button data-page="settings">
+  <span class="ico">⚙</span>Settings
+</button>
       </nav>
     </div>
     <div class="side-bottom"><div class="security"><b>◆ Secure administration</b>Admin-only workspace. Support replies are delivered to the user's account inbox.</div></div>
@@ -130,6 +133,131 @@ button,input,textarea{font:inherit}button{cursor:pointer}
         <div class="heading"><div><h2>Transfer requests</h2><p>Review simulated transfer requests. Confirming does not send real money.</p></div><button class="btn" id="refreshTransfers">↻ Refresh</button></div>
         <div class="panel"><div class="table-wrap"><table><thead><tr><th>ID</th><th>User</th><th>Recipient</th><th>Amount</th><th>Payout method</th><th>Status</th><th>Action</th></tr></thead><tbody id="transfersTable"><tr><td colspan="7">Loading…</td></tr></tbody></table></div></div>
       </section>
+      <!-- SETTINGS PAGE -->
+<section class="page" id="page-settings">
+
+  <div class="heading">
+    <div>
+      <h2>Settings</h2>
+      <p>Manage demo exchange rate and payment methods.</p>
+    </div>
+    <button class="btn" id="refreshSettings">↻ Refresh</button>
+  </div>
+
+  <!-- DEMO RATE -->
+  <div class="panel">
+    <h3>Demo Exchange Rate</h3>
+
+    <p class="muted" style="font-size:13px;margin-bottom:15px;">
+      Set the demo conversion rate used by Home and Send Money.
+    </p>
+
+    <form id="demoRateForm">
+      <label>1 USD = ? ETB</label>
+
+      <input
+        class="search"
+        style="margin:10px 0 15px;"
+        type="number"
+        id="demoRateInput"
+        min="0.01"
+        step="0.01"
+        placeholder="295"
+        required
+      >
+
+      <button class="btn gold" type="submit">
+        Save Demo Rate
+      </button>
+
+      <p id="demoRateMessage" class="notice"></p>
+    </form>
+
+    <small class="muted">
+      Demo rate only. Not an official exchange rate.
+    </small>
+  </div>
+
+  <!-- PAYMENT METHODS -->
+  <div class="panel">
+    <h3 id="paymentFormTitle">Add Payment Method</h3>
+
+    <form id="paymentMethodForm">
+
+      <label>Payment Method Name</label>
+      <input class="search" id="pmName" required maxlength="100"
+        placeholder="Telebirr, Bank, Remitly...">
+
+      <br><br>
+
+      <label>Account Name</label>
+      <input class="search" id="pmAccountName" maxlength="150"
+        placeholder="Account holder name">
+
+      <br><br>
+
+      <label>Account Number</label>
+      <input class="search" id="pmAccountNumber" maxlength="150"
+        placeholder="Account number">
+
+      <br><br>
+
+      <label>Payment Link</label>
+      <input class="search" id="pmLink" type="url"
+        placeholder="https://example.com">
+
+      <br><br>
+
+      <label>Currency</label>
+      <select class="search" id="pmCurrency">
+        <option value="USD">USD</option>
+        <option value="ETB">ETB</option>
+      </select>
+
+      <br><br>
+
+      <label>Instructions</label>
+      <textarea class="search" id="pmInstructions"
+        maxlength="2000" rows="3"
+        placeholder="Payment instructions"></textarea>
+
+      <br><br>
+
+      <button class="btn gold" type="submit" id="pmSaveButton">
+        Add Payment Method
+      </button>
+
+      <button class="btn" type="button" id="pmCancelEdit" hidden>
+        Cancel Edit
+      </button>
+
+      <p id="pmMessage" class="notice"></p>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h3>Existing Payment Methods</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Account</th>
+            <th>Currency</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody id="paymentMethodsTable">
+          <tr><td colspan="5">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
     </div>
   </main>
 </div>
@@ -149,13 +277,290 @@ async function api(url, options={}) {
   return data;
 }
 function escapeText(value){return String(value ?? "");}
+  // ========================================
+// ADMIN SETTINGS
+// ========================================
+
+let editingPaymentMethodId = null;
+let paymentMethodsCache = [];
+
+// LOAD SETTINGS
+async function loadSettings() {
+  await Promise.all([
+    loadAdminDemoRate(),
+    loadPaymentMethods()
+  ]);
+}
+
+// LOAD DEMO RATE
+async function loadAdminDemoRate() {
+  try {
+    const data = await api("/api/exchange-rate");
+
+    $("demoRateInput").value = Number(data.rate);
+
+  } catch (error) {
+    $("demoRateMessage").textContent = error.message;
+    $("demoRateMessage").classList.add("error");
+  }
+}
+
+// SAVE DEMO RATE
+$("demoRateForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const rate = Number($("demoRateInput").value);
+
+  if (!Number.isFinite(rate) || rate <= 0) {
+    $("demoRateMessage").textContent = "Enter a valid rate.";
+    return;
+  }
+
+  try {
+    const data = await api("/api/admin/exchange-rate", {
+      method: "PATCH",
+      body: JSON.stringify({ rate })
+    });
+
+    $("demoRateMessage").textContent =
+      `Saved successfully: 1 USD = ${Number(data.rate).toFixed(2)} ETB`;
+
+    $("demoRateMessage").classList.remove("error");
+
+  } catch (error) {
+    $("demoRateMessage").textContent = error.message;
+    $("demoRateMessage").classList.add("error");
+  }
+});
+
+// LOAD PAYMENT METHODS
+async function loadPaymentMethods() {
+  const table = $("paymentMethodsTable");
+
+  table.innerHTML =
+    '<tr><td colspan="5">Loading...</td></tr>';
+
+  try {
+    const data = await api("/api/admin/payment-methods");
+
+    paymentMethodsCache = data.paymentMethods || [];
+
+    table.replaceChildren();
+
+    if (!paymentMethodsCache.length) {
+      table.innerHTML =
+        '<tr><td colspan="5">No payment methods found.</td></tr>';
+      return;
+    }
+
+    paymentMethodsCache.forEach(method => {
+      const row = document.createElement("tr");
+
+      const values = [
+        method.method_name,
+        method.account_name || "—",
+        method.currency,
+        method.is_active ? "Active" : "Inactive"
+      ];
+
+      values.forEach(value => {
+        const cell = document.createElement("td");
+        cell.textContent = String(value);
+        row.appendChild(cell);
+      });
+
+      const actions = document.createElement("td");
+      actions.className = "actions";
+
+      const edit = document.createElement("button");
+      edit.className = "mini yes";
+      edit.textContent = "Edit";
+      edit.onclick = () => editPaymentMethod(method.id);
+
+      const toggle = document.createElement("button");
+      toggle.className = "mini";
+      toggle.textContent = method.is_active ? "Disable" : "Activate";
+      toggle.onclick = () => togglePaymentMethod(method.id);
+
+      const remove = document.createElement("button");
+      remove.className = "mini no";
+      remove.textContent = "Delete";
+      remove.onclick = () => deletePaymentMethod(method.id);
+
+      actions.append(edit, toggle, remove);
+      row.appendChild(actions);
+
+      table.appendChild(row);
+    });
+
+  } catch (error) {
+    table.innerHTML =
+      `<tr><td colspan="5">${escapeText(error.message)}</td></tr>`;
+  }
+}
+
+// ADD OR UPDATE PAYMENT METHOD
+$("paymentMethodForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const payload = {
+    method_name: $("pmName").value.trim(),
+    account_name: $("pmAccountName").value.trim(),
+    account_number: $("pmAccountNumber").value.trim(),
+    payment_link: $("pmLink").value.trim(),
+    currency: $("pmCurrency").value,
+    instructions: $("pmInstructions").value.trim(),
+    is_active: true
+  };
+
+  try {
+    if (editingPaymentMethodId !== null) {
+      const existing = paymentMethodsCache.find(
+        item => String(item.id) === String(editingPaymentMethodId)
+      );
+
+      payload.is_active = existing?.is_active ?? true;
+
+      await api(
+        `/api/admin/payment-methods/${editingPaymentMethodId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(payload)
+        }
+      );
+
+      $("pmMessage").textContent = "Payment method updated.";
+
+    } else {
+      await api("/api/admin/payment-methods", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      $("pmMessage").textContent = "Payment method added.";
+    }
+
+    resetPaymentForm();
+    await loadPaymentMethods();
+
+  } catch (error) {
+    $("pmMessage").textContent = error.message;
+    $("pmMessage").classList.add("error");
+  }
+});
+
+// EDIT PAYMENT METHOD
+function editPaymentMethod(id) {
+  const method = paymentMethodsCache.find(
+    item => String(item.id) === String(id)
+  );
+
+  if (!method) return;
+
+  editingPaymentMethodId = method.id;
+
+  $("pmName").value = method.method_name || "";
+  $("pmAccountName").value = method.account_name || "";
+  $("pmAccountNumber").value = method.account_number || "";
+  $("pmLink").value = method.payment_link || "";
+  $("pmCurrency").value = method.currency || "USD";
+  $("pmInstructions").value = method.instructions || "";
+
+  $("paymentFormTitle").textContent = "Edit Payment Method";
+  $("pmSaveButton").textContent = "Save Changes";
+  $("pmCancelEdit").hidden = false;
+
+  $("paymentFormTitle").scrollIntoView({
+    behavior: "smooth"
+  });
+}
+
+// ACTIVATE / DEACTIVATE
+async function togglePaymentMethod(id) {
+  const method = paymentMethodsCache.find(
+    item => String(item.id) === String(id)
+  );
+
+  if (!method) return;
+
+  const nextStatus = !method.is_active;
+
+  if (!confirm(
+    `${nextStatus ? "Activate" : "Disable"} ${method.method_name}?`
+  )) return;
+
+  try {
+    await api(`/api/admin/payment-methods/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        method_name: method.method_name,
+        account_name: method.account_name || "",
+        account_number: method.account_number || "",
+        payment_link: method.payment_link || "",
+        instructions: method.instructions || "",
+        currency: method.currency,
+        is_active: nextStatus
+      })
+    });
+
+    await loadPaymentMethods();
+
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+// DELETE PAYMENT METHOD
+async function deletePaymentMethod(id) {
+  const method = paymentMethodsCache.find(
+    item => String(item.id) === String(id)
+  );
+
+  if (!method) return;
+
+  if (!confirm(`Permanently delete ${method.method_name}?`)) return;
+
+  try {
+    await api(`/api/admin/payment-methods/${id}`, {
+      method: "DELETE"
+    });
+
+    await loadPaymentMethods();
+
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+// RESET FORM
+function resetPaymentForm() {
+  editingPaymentMethodId = null;
+
+  $("paymentMethodForm").reset();
+
+  $("paymentFormTitle").textContent = "Add Payment Method";
+  $("pmSaveButton").textContent = "Add Payment Method";
+  $("pmCancelEdit").hidden = true;
+}
+
+$("pmCancelEdit").addEventListener("click", resetPaymentForm);
+
+$("refreshSettings").addEventListener("click", loadSettings);
 function dateText(value){if(!value)return "—";const d=new Date(value);return Number.isNaN(d.getTime())?"—":d.toLocaleString();}
 function statusTag(value){const s=escapeText(value||"pending").toLowerCase();return `<span class="status ${s}">${s}</span>`;}
 function showPage(name){
+  if(name === "settings") loadSettings();
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   $("page-"+name).classList.add("active");
   document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
-  $("topTitle").textContent=({overview:"Overview",support:"Support Chat",users:"Registered Users",deposits:"Deposit Requests",transfers:"Transfer Requests"})[name]||name;
+$("topTitle").textContent=({
+  overview:"Overview",
+  support:"Support Chat",
+  users:"Registered Users",
+  deposits:"Deposit Requests",
+  transfers:"Transfer Requests",
+  settings:"Settings"
+})[name]||name;
   if(name==="support") loadConversations();
   if(name==="users") loadUsers();
   if(name==="deposits") loadDeposits();
