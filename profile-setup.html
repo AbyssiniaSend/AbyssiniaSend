@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Your Profile | AbyssiniaSend</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 430px;
+      background: #1b2738;
+      padding: 35px 28px;
+      border-radius: 18px;
+      border: 1px solid #34445a;
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 25px;
+      font-weight: bold;
+      color: #45d6a0;
+      margin-bottom: 25px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .description {
+      text-align: center;
+      color: #aab7c8;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      margin: 17px 0 8px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #40516a;
+      border-radius: 9px;
+      background: #101827;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #45d6a0;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 25px;
+      border: none;
+      border-radius: 9px;
+      background: #45d6a0;
+      color: #10251e;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="logo">AbyssiniaSend</div>
+
+    <h2>Complete Your Profile</h2>
+
+    <p class="description">
+      Please provide your full name and mobile number
+      to finish setting up your account.
+    </p>
+
+    <form id="profileForm">
+
+      <label for="fullName">Full Name</label>
+      <input
+        type="text"
+        id="fullName"
+        name="fullName"
+        placeholder="Enter your full legal name"
+        autocomplete="name"
+        required
+        minlength="3"
+      >
+
+      <label for="mobileNumber">Mobile Number</label>
+      <input
+        type="tel"
+        id="mobileNumber"
+        name="mobileNumber"
+        placeholder="+2519XXXXXXXX"
+        autocomplete="tel"
+        required
+      >
+
+      <button type="submit" id="submitBtn">
+        Save & Continue
+      </button>
+
+      <p id="message"></p>
+
+    </form>
+
+  </div>
+
+  <script>
+    const form = document.getElementById("profileForm");
+    const message = document.getElementById("message");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const fullName = document.getElementById("fullName").value.trim();
+      const mobileNumber = document.getElementById("mobileNumber").value.trim();
+
+      if (fullName.length < 3) {
+        message.textContent = "Please enter your full name.";
+        message.style.color = "#ff7777";
+        return;
+      }
+
+      if (!/^\+?[0-9\s-]{7,20}$/.test(mobileNumber)) {
+        message.textContent = "Please enter a valid mobile number.";
+        message.style.color = "#ff7777";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saving...";
+      message.textContent = "";
+
+      try {
+        const response = await fetch("/api/profile/complete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            fullName,
+            mobileNumber
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Unable to save your profile.");
+        }
+
+        message.style.color = "#45d6a0";
+        message.textContent = "Profile completed successfully!";
+
+        window.location.href = result.redirect || "/";
+
+      } catch (error) {
+        message.style.color = "#ff7777";
+        message.textContent = error.message;
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Save & Continue";
+      }
+    });
+  </script>
+
+</body>
+</html>
