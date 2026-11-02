@@ -571,7 +571,15 @@ th {
           <h1>Welcome Back, <span id="welcomeName">User</span></h1>
           <p>Manage your  wallet, requests and account.</p>
         </div>
-
+<div class="panel" style="margin-top:15px;">
+  <p class="muted">Current  Exchange Rate</p>
+  <h2 id="homeDemoRate" style="color:var(--gold);">
+    Loading rate...
+  </h2>
+  <small class="muted">
+     rate only — abyssiniasend official exchange rate.
+  </small>
+</div>
         <div class="dashboard-grid">
 
           <div class="panel">
@@ -1283,39 +1291,46 @@ document.getElementById("depositForm")
   });
 
 // ========================================
-// USD TO ETB EXCHANGE RATE
+// SHARED DEMO EXCHANGE RATE
 // ========================================
 
 let usdToEtbRate = null;
 
 async function loadTransferExchangeRate() {
   try {
-    const response = await fetch(
-      "https://open.er-api.com/v6/latest/USD"
-    );
+    const data = await apiRequest("/api/exchange-rate");
+    const rate = Number(data.rate);
 
-    if (!response.ok) throw new Error("Rate unavailable");
-
-    const data = await response.json();
-    const rate = Number(data?.rates?.ETB);
-
-    if (data.result !== "success" || !Number.isFinite(rate) || rate <= 0) {
-      throw new Error("Invalid exchange rate");
+    if (!Number.isFinite(rate) || rate <= 0) {
+      throw new Error("Invalid demo exchange rate.");
     }
 
+    // Shared rate for Home and Send Money
     usdToEtbRate = rate;
 
+    const rateText = `1 USD = ${rate.toFixed(2)} ETB`;
+
     document.getElementById("transferRate").textContent =
-      `1 USD = ${rate.toFixed(4)} ETB`;
+      rateText;
+
+    document.getElementById("homeDemoRate").textContent =
+      rateText;
 
     updateEstimatedETB();
 
   } catch (error) {
     usdToEtbRate = null;
+
     document.getElementById("transferRate").textContent =
-      "Exchange rate unavailable";
-    document.getElementById("estimatedETB").textContent = "— ETB";
-    console.error(error);
+      "Demo rate unavailable";
+
+    document.getElementById("homeDemoRate").textContent =
+      "Demo rate unavailable";
+
+    document.getElementById("estimatedETB").textContent =
+      "— ETB";
+
+    console.error("Demo rate error:", error);
   }
 }
 
@@ -1340,7 +1355,8 @@ function updateEstimatedETB() {
     maximumFractionDigits: 2
   }) + " ETB";
 
-  note.textContent = `${amount.toFixed(2)} USD × ${usdToEtbRate.toFixed(4)}`;
+  note.textContent =
+    `${amount.toFixed(2)} USD × ${usdToEtbRate.toFixed(2)} (Demo Rate)`;
 }
 
 document.getElementById("transferAmount")
