@@ -114,7 +114,9 @@ function safeUser(user) {
     id: user.id,
     fullName: user.full_name,
     email: user.email,
-    role: user.role
+    role: user.role,
+    mobileNumber: user.mobile_number || null,
+    profileCompleted: user.profile_completed !== false
   };
 }
 
@@ -370,7 +372,12 @@ await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_notifications_user
     ON user_notifications(user_id, created_at DESC)
   `);
-
+await pool.query(`
+  ALTER TABLE app_users
+    ADD COLUMN IF NOT EXISTS mobile_number VARCHAR(30),
+    ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN
+    NOT NULL DEFAULT TRUE
+`);
   // 11. ADMIN ACCOUNT
   const adminHash = await bcrypt.hash(
     process.env.ADMIN_PASSWORD,
@@ -2839,6 +2846,102 @@ app.patch(
   }
 );
 // ========================================
+// COMPLETE USER PROFILE
+// ========================================
+
+app.post(
+  "/api/profile/complete",
+  requireLogin,
+  async (req, res) => {
+    try {
+      const { fullName, mobileNumber } = req.body;
+
+      if (
+        typeof fullName !== "string" ||
+        typeof mobileNumber !== "string"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Full name and mobile number are required."
+        });
+      }
+
+      const cleanName = fullName.trim();
+      const cleanMobile = mobileNumber.trim();
+
+      if (cleanName.length < 3 || cleanName.length > 120) {
+        return res.status(400).json({
+          success: false,
+          message: "Full name must be between 3 and 120 characters."
+        });
+      }
+
+      if (!/^\+?[0-9\s-]{7,20}$/.test(cleanMobile)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please enter a valid mobile number."
+        });
+      }
+
+      const result = await pool.query(
+        `UPDATE app_users
+         SET full_name = $1,
+             mobile_number = $2,
+             profile_completed = TRUE
+         WHERE id = $3
+         RETURNING *`,
+        [
+          cleanName,
+          cleanMobile,
+          req.session.user.id
+        ]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "User account not found."
+        });
+      }
+
+      req.session.user = safeUser(result.rows[0]);
+
+      await saveSession(req);
+
+      return res.json({
+        success: true,
+        message: "Profile completed successfully.",
+        redirect: "/"
+      });
+
+    } catch (error) {
+      console.error("Profile completion error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Could not save your profile. Please try again."
+      });
+    }
+  }
+);
+app.get("/profile-setup", (req, res) => {
+  if (!req.session.user) {
+    return res.redirect("/login.html");
+  }
+
+  if (req.session.user.role === "admin") {
+    return res.redirect("/admin");
+  }
+
+  if (req.session.user.profileCompleted !== false) {
+    return res.redirect("/");
+  }
+
+  return res.sendFile(
+    path.join(__dirname, "profile-setup.html")
+  );
+});
+// ========================================
 // USER HOME PAGE
 // ========================================
 
@@ -2850,7 +2953,9 @@ app.get("/", async (req, res) => {
   if (req.session.user.role === "admin") {
     return res.redirect("/admin");
   }
-
+if (req.session.user.profileCompleted === false) {
+  return res.redirect("/profile-setup");
+}
   return res.sendFile(
     path.join(__dirname, "index.html")
   );
