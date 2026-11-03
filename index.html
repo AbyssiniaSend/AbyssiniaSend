@@ -573,7 +573,7 @@ th {
         </div>
 <div class="panel" style="margin-top:15px;">
   <p class="muted">Current  Exchange Rate</p>
-  <h2 id="homeDemoRate" style="color:var(--gold);">
+  <h2 id="homeRate" style="color:var(--gold);">
     Loading rate...
   </h2>
   <small class="muted">
@@ -634,87 +634,56 @@ th {
       <!-- OTHER PAGES WILL BE ADDED IN PART 2 -->
 
    
-<!-- ADD MONEY PAGE -->
 <section class="page" id="add-money">
   <div class="panel">
     <h2>＋ Add Money</h2>
-    <p class="muted">
-      Minimum deposit amount is $100 USD.
-    </p>
+    <p class="muted">Minimum deposit amount is $100 USD.</p>
 
     <form id="depositForm">
 
       <label>Deposit Amount (USD)</label>
-      <input
-        class="form-control"
-        type="number"
-        id="depositAmount"
-        min="100"
-        step="0.01"
-        placeholder="Minimum $100"
-        required
-      >
+      <input class="form-control"
+        type="number" id="depositAmount"
+        min="100" step="0.01"
+        placeholder="Minimum $100" required>
+
+      <label>Select Payment Method</label>
+      <select class="form-control" id="paymentMethodSelect" required>
+        <option value="">Loading payment methods...</option>
+      </select>
 
       <div class="panel" style="margin:15px 0;">
-        <h3>Payment Instructions</h3>
-        <p class="muted">
-          Follow these steps to make your payment.
-        </p>
-
-        <ol style="padding-left:22px;line-height:2;">
-          <li>Enter your deposit amount (minimum $100).</li>
-          <li>Click Pay with Remitly.</li>
-          <li>Complete your payment through Remitly.</li>
-          <li>Take a screenshot of your payment confirmation.</li>
-          <li>Upload the screenshot below.</li>
-          <li>Submit your deposit request for review.</li>
-        </ol>
-
-        <a
-          href="https://remit.ly/pay/nardosadanea7293"
-          target="_blank"
-          rel="noopener noreferrer"
+        <h3>Payment Details</h3>
+        <div id="paymentMethodDetails" class="muted">
+          Select a payment method.
+        </div>
+        <a id="paymentLink"
           class="btn btn-gold"
-          style="display:inline-block;text-decoration:none;margin-top:12px;"
-        >
-          Pay with Remitly ↗
+          style="display:none;margin-top:12px;text-decoration:none"
+          target="_blank" rel="noopener noreferrer">
+          Pay Now ↗
         </a>
       </div>
 
       <label>Payment Screenshot</label>
-      <input
-        class="form-control"
-        type="file"
+      <input class="form-control" type="file"
         id="depositScreenshot"
-        accept="image/png,image/jpeg,image/webp"
-        required
-      >
+        accept="image/png,image/jpeg,image/webp" required>
 
-      <img
-        id="depositPreview"
+      <img id="depositPreview"
         alt="Payment screenshot preview"
-        style="display:none;max-width:100%;max-height:300px;border-radius:12px;margin:10px 0;"
-      >
+        style="display:none;max-width:100%;max-height:300px;border-radius:12px;margin:10px 0;">
 
       <label>Transaction Reference</label>
-      <input
-        class="form-control"
-        type="text"
+      <input class="form-control" type="text"
         id="depositTransactionReference"
-        placeholder="Enter Remitly transaction reference"
-        required
-      >
+        placeholder="Enter transaction reference" required>
 
       <label>Note (Optional)</label>
-      <textarea
-        class="form-control"
-        id="depositNote"
-        rows="3"
+      <textarea class="form-control"
+        id="depositNote" rows="3"
         maxlength="200"
-        placeholder="Additional information"
-      ></textarea>
-
-      <input type="hidden" id="depositCurrency" value="USD">
+        placeholder="Additional information"></textarea>
 
       <button class="btn btn-gold" type="submit">
         Submit Deposit Request
@@ -1192,7 +1161,75 @@ function toggleBalance() {
   walletVisible = !walletVisible;
   loadWalletBalance();
 }
+// LOAD ACTIVE PAYMENT METHODS FROM ADMIN
+let activePaymentMethods = [];
 
+async function loadPaymentMethods() {
+  const select = document.getElementById("paymentMethodSelect");
+  const details = document.getElementById("paymentMethodDetails");
+  const link = document.getElementById("paymentLink");
+
+  try {
+    const data = await apiRequest("/api/payment-methods");
+
+    activePaymentMethods = data.paymentMethods || [];
+    select.replaceChildren();
+
+    if (activePaymentMethods.length === 0) {
+      select.add(new Option("No active payment methods", ""));
+      details.textContent = "No payment methods are currently available.";
+      return;
+    }
+
+    select.add(new Option("Select payment method", ""));
+
+    activePaymentMethods.forEach(method => {
+      select.add(new Option(
+        method.method_name,
+        String(method.id)
+      ));
+    });
+
+    details.textContent = "Select a payment method to see its details.";
+
+  } catch (error) {
+    select.replaceChildren(
+      new Option("Could not load payment methods", "")
+    );
+    details.textContent = error.message;
+  }
+}
+
+document.getElementById("paymentMethodSelect")
+  .addEventListener("change", function () {
+    const method = activePaymentMethods.find(
+      item => String(item.id) === this.value
+    );
+
+    const details = document.getElementById("paymentMethodDetails");
+    const link = document.getElementById("paymentLink");
+
+    link.style.display = "none";
+
+    if (!method) {
+      details.textContent = "Select a payment method.";
+      return;
+    }
+
+    details.textContent =
+      "Method: " + method.method_name +
+      "\nAccount Name: " + (method.account_name || "-") +
+      "\nAccount Number: " + (method.account_number || "-") +
+      "\nCurrency: " + (method.currency || "USD") +
+      "\nInstructions: " + (method.instructions || "-");
+
+    details.style.whiteSpace = "pre-line";
+
+    if (method.payment_link) {
+      link.href = method.payment_link;
+      link.style.display = "inline-block";
+    }
+  });
 // ========================================
 // ADD MONEY / DEPOSIT REQUEST
 // ========================================
@@ -1246,6 +1283,15 @@ document.getElementById("depositForm")
 
     formData.append("amount", String(amount));
     formData.append("currency", "USD");
+    const paymentMethodId =
+  document.getElementById("paymentMethodSelect").value;
+
+if (!paymentMethodId) {
+  showMessage("depositMessage", "Please select a payment method.");
+  return;
+}
+
+formData.append("payment_method_id", paymentMethodId);
     formData.append(
       "transaction_reference",
       document.getElementById("depositTransactionReference").value.trim()
@@ -1291,7 +1337,7 @@ document.getElementById("depositForm")
   });
 
 // ========================================
-// SHARED DEMO EXCHANGE RATE
+// SHARED live EXCHANGE RATE
 // ========================================
 
 let usdToEtbRate = null;
@@ -1302,7 +1348,7 @@ async function loadTransferExchangeRate() {
     const rate = Number(data.rate);
 
     if (!Number.isFinite(rate) || rate <= 0) {
-      throw new Error("Invalid demo exchange rate.");
+      throw new Error("Invalid live exchange rate.");
     }
 
     // Shared rate for Home and Send Money
@@ -1313,7 +1359,7 @@ async function loadTransferExchangeRate() {
     document.getElementById("transferRate").textContent =
       rateText;
 
-    document.getElementById("homeDemoRate").textContent =
+    document.getElementById("homeRate").textContent =
       rateText;
 
     updateEstimatedETB();
@@ -1322,15 +1368,15 @@ async function loadTransferExchangeRate() {
     usdToEtbRate = null;
 
     document.getElementById("transferRate").textContent =
-      "Demo rate unavailable";
+      "live rate unavailable";
 
-    document.getElementById("homeDemoRate").textContent =
-      "Demo rate unavailable";
+    document.getElementById("homeliveRate").textContent =
+      "live rate unavailable";
 
     document.getElementById("estimatedETB").textContent =
       "— ETB";
 
-    console.error("Demo rate error:", error);
+    console.error("live rate error:", error);
   }
 }
 
@@ -1356,7 +1402,7 @@ function updateEstimatedETB() {
   }) + " ETB";
 
   note.textContent =
-    `${amount.toFixed(2)} USD × ${usdToEtbRate.toFixed(2)} (Demo Rate)`;
+    `${amount.toFixed(2)} USD × ${usdToEtbRate.toFixed(2)} (live Rate)`;
 }
 
 document.getElementById("transferAmount")
@@ -1760,6 +1806,7 @@ document.getElementById("logoutButton")
 // ========================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  loadPaymentMethods();
   loadCurrentUser();
 });
 // ========================================
