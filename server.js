@@ -281,6 +281,11 @@ async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(`
+  ALTER TABLE payment_settings
+  ADD COLUMN IF NOT EXISTS created_at
+  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+`);
 //  EXCHANGE RATE SETTINGS
 await pool.query(`
   CREATE TABLE IF NOT EXISTS app_settings (
