@@ -1160,8 +1160,7 @@ async function loadWalletBalance() {
 function toggleBalance() {
   walletVisible = !walletVisible;
   loadWalletBalance();
-}
-// LOAD ACTIVE PAYMENT METHODS FROM ADMIN
+}// LOAD ACTIVE PAYMENT METHODS FROM ADMIN
 let activePaymentMethods = [];
 
 async function loadPaymentMethods() {
@@ -1177,20 +1176,17 @@ async function loadPaymentMethods() {
 
     if (activePaymentMethods.length === 0) {
       select.add(new Option("No active payment methods", ""));
-      details.textContent = "No payment methods are currently available.";
+      details.textContent = "No payment methods available.";
       return;
     }
 
     select.add(new Option("Select payment method", ""));
 
     activePaymentMethods.forEach(method => {
-      select.add(new Option(
-        method.method_name,
-        String(method.id)
-      ));
+      select.add(new Option(method.method_name, String(method.id)));
     });
 
-    details.textContent = "Select a payment method to see its details.";
+    details.textContent = "Select a payment method.";
 
   } catch (error) {
     select.replaceChildren(
@@ -1202,6 +1198,7 @@ async function loadPaymentMethods() {
 
 document.getElementById("paymentMethodSelect")
   .addEventListener("change", function () {
+
     const method = activePaymentMethods.find(
       item => String(item.id) === this.value
     );
@@ -1210,20 +1207,63 @@ document.getElementById("paymentMethodSelect")
     const link = document.getElementById("paymentLink");
 
     link.style.display = "none";
+    details.replaceChildren();
 
     if (!method) {
       details.textContent = "Select a payment method.";
       return;
     }
 
-    details.textContent =
-      "Method: " + method.method_name +
-      "\nAccount Name: " + (method.account_name || "-") +
-      "\nAccount Number: " + (method.account_number || "-") +
-      "\nCurrency: " + (method.currency || "USD") +
-      "\nInstructions: " + (method.instructions || "-");
+    function addDetail(label, value, copy = false) {
+      const box = document.createElement("div");
+      box.style.cssText =
+        "background:var(--panel2);padding:12px;margin:10px 0;border-radius:10px;border:1px solid var(--border);";
 
-    details.style.whiteSpace = "pre-line";
+      const title = document.createElement("strong");
+      title.textContent = label;
+
+      const row = document.createElement("div");
+      row.style.cssText =
+        "display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;";
+
+      const text = document.createElement("span");
+      text.textContent = value || "-";
+      text.style.whiteSpace = "pre-wrap";
+      text.style.overflowWrap = "anywhere";
+
+      row.appendChild(text);
+
+      if (copy && value) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "📋";
+        button.title = "Copy account number";
+        button.style.cssText =
+          "padding:8px 12px;border:0;border-radius:8px;cursor:pointer;";
+
+        button.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(value);
+            button.textContent = "✓ Copied";
+          } catch {
+            text.textContent = value;
+            button.textContent = "Copy manually";
+          }
+        });
+
+        row.appendChild(button);
+      }
+
+      box.appendChild(title);
+      box.appendChild(row);
+      details.appendChild(box);
+    }
+
+    addDetail("Payment Method", method.method_name);
+    addDetail("Account Name", method.account_name);
+    addDetail("Account Number", method.account_number, true);
+    addDetail("Currency", method.currency || "USD");
+    addDetail("Instructions", method.instructions);
 
     if (method.payment_link) {
       link.href = method.payment_link;
